@@ -41,6 +41,7 @@ func Setup(h *handler.WalletHandler) *fiber.App {
 	})
 
 	api := app.Group("/api")
+	api.Use(middleware.AuthMiddleware)
 	api.Post("/wallets", h.Create)
 	api.Get("/wallets/:id", h.Get)
 	api.Post("/wallets/:id/topup", h.TopUp)
