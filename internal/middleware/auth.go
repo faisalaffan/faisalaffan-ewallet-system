@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"os"
+	"strings"
 
 	"github.com/faisalaffan/ewallet-system/pkg/response"
 	"github.com/gofiber/fiber/v3"
@@ -18,11 +19,11 @@ func AuthMiddleware(c fiber.Ctx) error {
 	}
 
 	auth := c.Get("Authorization")
-	if len(auth) < 8 || auth[:7] != "Bearer " {
-		return c.Status(401).JSON(response.Error(401, "UNAUTHORIZED", "missing or invalid Authorization header"))
+	if auth == "" {
+		return c.Status(401).JSON(response.Error(401, "UNAUTHORIZED", "missing Authorization header"))
 	}
 
-	token := auth[7:]
+	token := strings.TrimPrefix(auth, "Bearer ")
 	if token != apiKey {
 		return c.Status(401).JSON(response.Error(401, "UNAUTHORIZED", "invalid API key"))
 	}

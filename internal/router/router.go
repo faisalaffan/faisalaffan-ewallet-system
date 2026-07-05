@@ -1,6 +1,8 @@
 package router
 
 import (
+	"strings"
+
 	"github.com/faisalaffan/ewallet-system/docs"
 	"github.com/faisalaffan/ewallet-system/internal/handler"
 	"github.com/faisalaffan/ewallet-system/internal/middleware"
@@ -20,51 +22,16 @@ const swaggerHTML = `<!DOCTYPE html>
     <div id="swagger-ui"></div>
     <script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js" crossorigin></script>
     <script>
-        const ui = SwaggerUIBundle({
+        SwaggerUIBundle({
             url: "/swagger/doc.json",
             dom_id: "#swagger-ui",
-            persistAuthorization: true,
-            onComplete: function() {
-                const stored = localStorage.getItem("ewallet-api-key");
-                if (stored) {
-                    ui.authActions.authorize({
-                        BearerAuth: { name: "BearerAuth", schema: { type: "apiKey", in: "header", name: "Authorization" }, value: stored }
-                    });
-                }
-            }
+            persistAuthorization: true
         });
-        function injectTokenUI() {
-            const target = document.querySelector(".information-container") || document.querySelector(".topbar");
-            if (!target) return setTimeout(injectTokenUI, 200);
-            const wrapper = document.createElement("div");
-            wrapper.style.cssText = "margin:10px 0";
-            const input = document.createElement("input");
-            input.id = "api-key-input";
-            input.type = "password";
-            input.placeholder = "API Key";
-            input.style.cssText = "padding:6px;width:240px;margin-right:8px;border:1px solid #ccc;border-radius:4px";
-            const button = document.createElement("button");
-            button.id = "api-key-btn";
-            button.textContent = "Set Token";
-            button.style.cssText = "padding:6px 12px;cursor:pointer";
-            button.onclick = function() {
-                const key = input.value;
-                if (key) {
-                    localStorage.setItem("ewallet-api-key", key);
-                    ui.authActions.authorize({
-                        BearerAuth: { name: "BearerAuth", schema: { type: "apiKey", in: "header", name: "Authorization" }, value: key }
-                    });
-                    ui.specActions.download();
-                }
-            };
-            wrapper.appendChild(input);
-            wrapper.appendChild(button);
-            target.parentNode.insertBefore(wrapper, target.nextSibling);
-        }
-        setTimeout(injectTokenUI, 500);
     </script>
 </body>
 </html>`
+
+const securityDef = `,"securityDefinitions":{"ApiKeyAuth":{"type":"apiKey","name":"Authorization","in":"header","description":"Enter: Bearer <your-api-key>"}},"security":[{"ApiKeyAuth":[]}]`
 
 func Setup(h *handler.WalletHandler) *fiber.App {
 	app := fiber.New()
@@ -79,7 +46,9 @@ func Setup(h *handler.WalletHandler) *fiber.App {
 	})
 	app.Get("/swagger/doc.json", func(c fiber.Ctx) error {
 		c.Set("Content-Type", "application/json")
-		return c.SendString(docs.SwaggerInfo.ReadDoc())
+		raw := docs.SwaggerInfo.ReadDoc()
+		raw = strings.Replace(raw, `,"paths":{`, securityDef+`,"paths":{`, 1)
+		return c.SendString(raw)
 	})
 
 	api := app.Group("/api")
