@@ -69,6 +69,7 @@ const swaggerHTML = `<!DOCTYPE html>
 func Setup(h *handler.WalletHandler) *fiber.App {
 	app := fiber.New()
 
+	app.Use(middleware.CORSMiddleware)
 	app.Use(middleware.OtelMiddleware)
 	app.Use(telemetry.MetricsMiddleware)
 
