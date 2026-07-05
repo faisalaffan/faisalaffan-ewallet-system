@@ -1,6 +1,7 @@
 package router_test
 
 import (
+	"context"
 	"errors"
 	"net/http"
 	"net/http/httptest"
@@ -22,39 +23,39 @@ import (
 // ---------------------------------------------------------------------------
 
 type mockWalletSvc struct {
-	createFn   func(domain.CreateWalletRequest) (*domain.Wallet, error)
-	getByIDFn  func(uuid.UUID) (*domain.Wallet, error)
-	topUpFn    func(uuid.UUID, domain.TopUpRequest) (*domain.TopUpResponse, error)
-	payFn      func(uuid.UUID, domain.PayRequest) (*domain.PayResponse, error)
-	transferFn func(domain.TransferRequest) (*domain.TransferResponse, error)
-	suspendFn  func(uuid.UUID) (*domain.SuspendResponse, error)
+	createFn   func(ctx context.Context, req domain.CreateWalletRequest) (*domain.Wallet, error)
+	getByIDFn  func(ctx context.Context, id uuid.UUID) (*domain.Wallet, error)
+	topUpFn    func(ctx context.Context, id uuid.UUID, req domain.TopUpRequest) (*domain.TopUpResponse, error)
+	payFn      func(ctx context.Context, id uuid.UUID, req domain.PayRequest) (*domain.PayResponse, error)
+	transferFn func(ctx context.Context, req domain.TransferRequest) (*domain.TransferResponse, error)
+	suspendFn  func(ctx context.Context, id uuid.UUID) (*domain.SuspendResponse, error)
 }
 
-func (m *mockWalletSvc) Create(req domain.CreateWalletRequest) (*domain.Wallet, error) {
-	return m.createFn(req)
+func (m *mockWalletSvc) Create(ctx context.Context, req domain.CreateWalletRequest) (*domain.Wallet, error) {
+	return m.createFn(ctx, req)
 }
-func (m *mockWalletSvc) GetByID(id uuid.UUID) (*domain.Wallet, error) {
-	return m.getByIDFn(id)
+func (m *mockWalletSvc) GetByID(ctx context.Context, id uuid.UUID) (*domain.Wallet, error) {
+	return m.getByIDFn(ctx, id)
 }
-func (m *mockWalletSvc) TopUp(id uuid.UUID, req domain.TopUpRequest) (*domain.TopUpResponse, error) {
-	return m.topUpFn(id, req)
+func (m *mockWalletSvc) TopUp(ctx context.Context, id uuid.UUID, req domain.TopUpRequest) (*domain.TopUpResponse, error) {
+	return m.topUpFn(ctx, id, req)
 }
-func (m *mockWalletSvc) Pay(id uuid.UUID, req domain.PayRequest) (*domain.PayResponse, error) {
-	return m.payFn(id, req)
+func (m *mockWalletSvc) Pay(ctx context.Context, id uuid.UUID, req domain.PayRequest) (*domain.PayResponse, error) {
+	return m.payFn(ctx, id, req)
 }
-func (m *mockWalletSvc) Transfer(req domain.TransferRequest) (*domain.TransferResponse, error) {
-	return m.transferFn(req)
+func (m *mockWalletSvc) Transfer(ctx context.Context, req domain.TransferRequest) (*domain.TransferResponse, error) {
+	return m.transferFn(ctx, req)
 }
-func (m *mockWalletSvc) Suspend(id uuid.UUID) (*domain.SuspendResponse, error) {
-	return m.suspendFn(id)
+func (m *mockWalletSvc) Suspend(ctx context.Context, id uuid.UUID) (*domain.SuspendResponse, error) {
+	return m.suspendFn(ctx, id)
 }
 
 type mockReconcileSvc struct {
-	reconcileFn func(uuid.UUID) (*domain.ReconcileResponse, error)
+	reconcileFn func(ctx context.Context, id uuid.UUID) (*domain.ReconcileResponse, error)
 }
 
-func (m *mockReconcileSvc) Reconcile(id uuid.UUID) (*domain.ReconcileResponse, error) {
-	return m.reconcileFn(id)
+func (m *mockReconcileSvc) Reconcile(ctx context.Context, id uuid.UUID) (*domain.ReconcileResponse, error) {
+	return m.reconcileFn(ctx, id)
 }
 
 // ---------------------------------------------------------------------------
@@ -67,27 +68,27 @@ func newMockHandler() *handler.WalletHandler {
 	genericErr := errors.New("mock error")
 	return handler.NewWalletHandler(
 		&mockWalletSvc{
-			createFn: func(domain.CreateWalletRequest) (*domain.Wallet, error) {
+			createFn: func(ctx context.Context, req domain.CreateWalletRequest) (*domain.Wallet, error) {
 				return nil, genericErr
 			},
-			getByIDFn: func(uuid.UUID) (*domain.Wallet, error) {
+			getByIDFn: func(ctx context.Context, id uuid.UUID) (*domain.Wallet, error) {
 				return nil, genericErr
 			},
-			topUpFn: func(uuid.UUID, domain.TopUpRequest) (*domain.TopUpResponse, error) {
+			topUpFn: func(ctx context.Context, id uuid.UUID, req domain.TopUpRequest) (*domain.TopUpResponse, error) {
 				return nil, genericErr
 			},
-			payFn: func(uuid.UUID, domain.PayRequest) (*domain.PayResponse, error) {
+			payFn: func(ctx context.Context, id uuid.UUID, req domain.PayRequest) (*domain.PayResponse, error) {
 				return nil, genericErr
 			},
-			transferFn: func(domain.TransferRequest) (*domain.TransferResponse, error) {
+			transferFn: func(ctx context.Context, req domain.TransferRequest) (*domain.TransferResponse, error) {
 				return nil, genericErr
 			},
-			suspendFn: func(uuid.UUID) (*domain.SuspendResponse, error) {
+			suspendFn: func(ctx context.Context, id uuid.UUID) (*domain.SuspendResponse, error) {
 				return nil, genericErr
 			},
 		},
 		&mockReconcileSvc{
-			reconcileFn: func(uuid.UUID) (*domain.ReconcileResponse, error) {
+			reconcileFn: func(ctx context.Context, id uuid.UUID) (*domain.ReconcileResponse, error) {
 				return nil, genericErr
 			},
 		},

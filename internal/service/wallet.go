@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"sort"
@@ -28,12 +29,12 @@ var minAmount = decimal.NewFromFloat(0.01)
 
 // WalletServiceInterface defines the contract for wallet operations used by the handler.
 type WalletServiceInterface interface {
-	Create(req domain.CreateWalletRequest) (*domain.Wallet, error)
-	GetByID(id uuid.UUID) (*domain.Wallet, error)
-	TopUp(walletID uuid.UUID, req domain.TopUpRequest) (*domain.TopUpResponse, error)
-	Pay(walletID uuid.UUID, req domain.PayRequest) (*domain.PayResponse, error)
-	Transfer(req domain.TransferRequest) (*domain.TransferResponse, error)
-	Suspend(walletID uuid.UUID) (*domain.SuspendResponse, error)
+	Create(ctx context.Context, req domain.CreateWalletRequest) (*domain.Wallet, error)
+	GetByID(ctx context.Context, id uuid.UUID) (*domain.Wallet, error)
+	TopUp(ctx context.Context, walletID uuid.UUID, req domain.TopUpRequest) (*domain.TopUpResponse, error)
+	Pay(ctx context.Context, walletID uuid.UUID, req domain.PayRequest) (*domain.PayResponse, error)
+	Transfer(ctx context.Context, req domain.TransferRequest) (*domain.TransferResponse, error)
+	Suspend(ctx context.Context, walletID uuid.UUID) (*domain.SuspendResponse, error)
 }
 
 // Ensure WalletService satisfies WalletServiceInterface at compile time.
@@ -41,7 +42,7 @@ var _ WalletServiceInterface = (*WalletService)(nil)
 
 // WalletRepository defines the interface for wallet data access.
 type WalletRepository interface {
-	DB() *gorm.DB
+	DB(ctx context.Context) *gorm.DB
 	Create(tx *gorm.DB, w *domain.Wallet) error
 	FindByID(id uuid.UUID) (*domain.Wallet, error)
 	FindByOwnerAndCurrency(ownerID, currency string) (*domain.Wallet, error)
@@ -78,7 +79,7 @@ type noopPublisher struct{}
 
 func (n *noopPublisher) Publish(topic string, evt any) {}
 
-func (s *WalletService) Create(req domain.CreateWalletRequest) (*domain.Wallet, error) {
+func (s *WalletService) Create(ctx context.Context, req domain.CreateWalletRequest) (*domain.Wallet, error) {
 	if len(req.Currency) != 3 {
 		return nil, ErrInvalidCurrency
 	}
@@ -98,13 +99,13 @@ func (s *WalletService) Create(req domain.CreateWalletRequest) (*domain.Wallet, 
 		Balance:  "0.00",
 		Status:   domain.WalletStatusActive,
 	}
-	if err := s.walletRepo.Create(s.walletRepo.DB(), w); err != nil {
+	if err := s.walletRepo.Create(s.walletRepo.DB(ctx), w); err != nil {
 		return nil, err
 	}
 	return w, nil
 }
 
-func (s *WalletService) GetByID(id uuid.UUID) (*domain.Wallet, error) {
+func (s *WalletService) GetByID(ctx context.Context, id uuid.UUID) (*domain.Wallet, error) {
 	w, err := s.walletRepo.FindByID(id)
 	if err != nil {
 		if errors.Is(err, repository.ErrNotFound) {
@@ -115,7 +116,7 @@ func (s *WalletService) GetByID(id uuid.UUID) (*domain.Wallet, error) {
 	return w, nil
 }
 
-func (s *WalletService) TopUp(walletID uuid.UUID, req domain.TopUpRequest) (*domain.TopUpResponse, error) {
+func (s *WalletService) TopUp(ctx context.Context, walletID uuid.UUID, req domain.TopUpRequest) (*domain.TopUpResponse, error) {
 	amount, err := parseAndRoundAmount(req.Amount)
 	if err != nil {
 		return nil, err
@@ -139,7 +140,7 @@ func (s *WalletService) TopUp(walletID uuid.UUID, req domain.TopUpRequest) (*dom
 		}, nil
 	}
 
-	tx := s.walletRepo.DB().Begin()
+	tx := s.walletRepo.DB(ctx).Begin()
 	defer func() {
 		if r := recover(); r != nil {
 			tx.Rollback()
@@ -196,7 +197,7 @@ func (s *WalletService) TopUp(walletID uuid.UUID, req domain.TopUpRequest) (*dom
 	}, nil
 }
 
-func (s *WalletService) Pay(walletID uuid.UUID, req domain.PayRequest) (*domain.PayResponse, error) {
+func (s *WalletService) Pay(ctx context.Context, walletID uuid.UUID, req domain.PayRequest) (*domain.PayResponse, error) {
 	amount, err := parseAndRoundAmount(req.Amount)
 	if err != nil {
 		return nil, err
@@ -219,7 +220,7 @@ func (s *WalletService) Pay(walletID uuid.UUID, req domain.PayRequest) (*domain.
 		}, nil
 	}
 
-	tx := s.walletRepo.DB().Begin()
+	tx := s.walletRepo.DB(ctx).Begin()
 	defer func() {
 		if r := recover(); r != nil {
 			tx.Rollback()
@@ -281,7 +282,7 @@ func (s *WalletService) Pay(walletID uuid.UUID, req domain.PayRequest) (*domain.
 	}, nil
 }
 
-func (s *WalletService) Transfer(req domain.TransferRequest) (*domain.TransferResponse, error) {
+func (s *WalletService) Transfer(ctx context.Context, req domain.TransferRequest) (*domain.TransferResponse, error) {
 	amount, err := parseAndRoundAmount(req.Amount)
 	if err != nil {
 		return nil, err
@@ -345,7 +346,7 @@ func (s *WalletService) Transfer(req domain.TransferRequest) (*domain.TransferRe
 		return lockIDs[i].String() < lockIDs[j].String()
 	})
 
-	tx := s.walletRepo.DB().Begin()
+	tx := s.walletRepo.DB(ctx).Begin()
 	defer func() {
 		if r := recover(); r != nil {
 			tx.Rollback()
@@ -445,7 +446,7 @@ func (s *WalletService) Transfer(req domain.TransferRequest) (*domain.TransferRe
 	}, nil
 }
 
-func (s *WalletService) Suspend(walletID uuid.UUID) (*domain.SuspendResponse, error) {
+func (s *WalletService) Suspend(ctx context.Context, walletID uuid.UUID) (*domain.SuspendResponse, error) {
 	w, err := s.walletRepo.FindByID(walletID)
 	if err != nil {
 		if errors.Is(err, repository.ErrNotFound) {
@@ -462,7 +463,7 @@ func (s *WalletService) Suspend(walletID uuid.UUID) (*domain.SuspendResponse, er
 		}, nil
 	}
 
-	if err := s.walletRepo.UpdateStatus(s.walletRepo.DB(), walletID, domain.WalletStatusSuspended); err != nil {
+	if err := s.walletRepo.UpdateStatus(s.walletRepo.DB(ctx), walletID, domain.WalletStatusSuspended); err != nil {
 		return nil, err
 	}
 

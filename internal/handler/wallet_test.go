@@ -1,6 +1,7 @@
 package handler_test
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -25,39 +26,39 @@ import (
 // ---------------------------------------------------------------------------
 
 type mockWalletService struct {
-	createFn    func(domain.CreateWalletRequest) (*domain.Wallet, error)
-	getByIDFn   func(uuid.UUID) (*domain.Wallet, error)
-	topUpFn     func(uuid.UUID, domain.TopUpRequest) (*domain.TopUpResponse, error)
-	payFn       func(uuid.UUID, domain.PayRequest) (*domain.PayResponse, error)
-	transferFn  func(domain.TransferRequest) (*domain.TransferResponse, error)
-	suspendFn   func(uuid.UUID) (*domain.SuspendResponse, error)
+	createFn    func(ctx context.Context, req domain.CreateWalletRequest) (*domain.Wallet, error)
+	getByIDFn   func(ctx context.Context, id uuid.UUID) (*domain.Wallet, error)
+	topUpFn     func(ctx context.Context, id uuid.UUID, req domain.TopUpRequest) (*domain.TopUpResponse, error)
+	payFn       func(ctx context.Context, id uuid.UUID, req domain.PayRequest) (*domain.PayResponse, error)
+	transferFn  func(ctx context.Context, req domain.TransferRequest) (*domain.TransferResponse, error)
+	suspendFn   func(ctx context.Context, id uuid.UUID) (*domain.SuspendResponse, error)
 }
 
-func (m *mockWalletService) Create(req domain.CreateWalletRequest) (*domain.Wallet, error) {
-	return m.createFn(req)
+func (m *mockWalletService) Create(ctx context.Context, req domain.CreateWalletRequest) (*domain.Wallet, error) {
+	return m.createFn(ctx, req)
 }
-func (m *mockWalletService) GetByID(id uuid.UUID) (*domain.Wallet, error) {
-	return m.getByIDFn(id)
+func (m *mockWalletService) GetByID(ctx context.Context, id uuid.UUID) (*domain.Wallet, error) {
+	return m.getByIDFn(ctx, id)
 }
-func (m *mockWalletService) TopUp(id uuid.UUID, req domain.TopUpRequest) (*domain.TopUpResponse, error) {
-	return m.topUpFn(id, req)
+func (m *mockWalletService) TopUp(ctx context.Context, id uuid.UUID, req domain.TopUpRequest) (*domain.TopUpResponse, error) {
+	return m.topUpFn(ctx, id, req)
 }
-func (m *mockWalletService) Pay(id uuid.UUID, req domain.PayRequest) (*domain.PayResponse, error) {
-	return m.payFn(id, req)
+func (m *mockWalletService) Pay(ctx context.Context, id uuid.UUID, req domain.PayRequest) (*domain.PayResponse, error) {
+	return m.payFn(ctx, id, req)
 }
-func (m *mockWalletService) Transfer(req domain.TransferRequest) (*domain.TransferResponse, error) {
-	return m.transferFn(req)
+func (m *mockWalletService) Transfer(ctx context.Context, req domain.TransferRequest) (*domain.TransferResponse, error) {
+	return m.transferFn(ctx, req)
 }
-func (m *mockWalletService) Suspend(id uuid.UUID) (*domain.SuspendResponse, error) {
-	return m.suspendFn(id)
+func (m *mockWalletService) Suspend(ctx context.Context, id uuid.UUID) (*domain.SuspendResponse, error) {
+	return m.suspendFn(ctx, id)
 }
 
 type mockReconcileService struct {
-	reconcileFn func(uuid.UUID) (*domain.ReconcileResponse, error)
+	reconcileFn func(ctx context.Context, id uuid.UUID) (*domain.ReconcileResponse, error)
 }
 
-func (m *mockReconcileService) Reconcile(id uuid.UUID) (*domain.ReconcileResponse, error) {
-	return m.reconcileFn(id)
+func (m *mockReconcileService) Reconcile(ctx context.Context, id uuid.UUID) (*domain.ReconcileResponse, error) {
+	return m.reconcileFn(ctx, id)
 }
 
 // ---------------------------------------------------------------------------
@@ -68,27 +69,27 @@ func (m *mockReconcileService) Reconcile(id uuid.UUID) (*domain.ReconcileRespons
 // panics by default so any unexpected call fails the test loudly.
 func newTestHandler() (*handler.WalletHandler, *mockWalletService, *mockReconcileService) {
 	mws := &mockWalletService{
-		createFn: func(domain.CreateWalletRequest) (*domain.Wallet, error) {
+		createFn: func(ctx context.Context, req domain.CreateWalletRequest) (*domain.Wallet, error) {
 			panic("unexpected call to Create")
 		},
-		getByIDFn: func(uuid.UUID) (*domain.Wallet, error) {
+		getByIDFn: func(ctx context.Context, id uuid.UUID) (*domain.Wallet, error) {
 			panic("unexpected call to GetByID")
 		},
-		topUpFn: func(uuid.UUID, domain.TopUpRequest) (*domain.TopUpResponse, error) {
+		topUpFn: func(ctx context.Context, id uuid.UUID, req domain.TopUpRequest) (*domain.TopUpResponse, error) {
 			panic("unexpected call to TopUp")
 		},
-		payFn: func(uuid.UUID, domain.PayRequest) (*domain.PayResponse, error) {
+		payFn: func(ctx context.Context, id uuid.UUID, req domain.PayRequest) (*domain.PayResponse, error) {
 			panic("unexpected call to Pay")
 		},
-		transferFn: func(domain.TransferRequest) (*domain.TransferResponse, error) {
+		transferFn: func(ctx context.Context, req domain.TransferRequest) (*domain.TransferResponse, error) {
 			panic("unexpected call to Transfer")
 		},
-		suspendFn: func(uuid.UUID) (*domain.SuspendResponse, error) {
+		suspendFn: func(ctx context.Context, id uuid.UUID) (*domain.SuspendResponse, error) {
 			panic("unexpected call to Suspend")
 		},
 	}
 	mrs := &mockReconcileService{
-		reconcileFn: func(uuid.UUID) (*domain.ReconcileResponse, error) {
+		reconcileFn: func(ctx context.Context, id uuid.UUID) (*domain.ReconcileResponse, error) {
 			panic("unexpected call to Reconcile")
 		},
 	}
@@ -166,7 +167,7 @@ func TestWalletHandler_Create(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		t.Parallel()
 		th := newHarness()
-		th.mws.createFn = func(req domain.CreateWalletRequest) (*domain.Wallet, error) {
+		th.mws.createFn = func(ctx context.Context, req domain.CreateWalletRequest) (*domain.Wallet, error) {
 			assert.Equal(t, "user-001", req.OwnerID)
 			assert.Equal(t, "USD", req.Currency)
 			w := defaultWallet()
@@ -207,7 +208,7 @@ func TestWalletHandler_Create(t *testing.T) {
 	t.Run("conflict", func(t *testing.T) {
 		t.Parallel()
 		th := newHarness()
-		th.mws.createFn = func(req domain.CreateWalletRequest) (*domain.Wallet, error) {
+		th.mws.createFn = func(ctx context.Context, req domain.CreateWalletRequest) (*domain.Wallet, error) {
 			return nil, errAlreadyExists
 		}
 
@@ -244,7 +245,7 @@ func TestWalletHandler_Get(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		t.Parallel()
 		th := newHarness()
-		th.mws.getByIDFn = func(id uuid.UUID) (*domain.Wallet, error) {
+		th.mws.getByIDFn = func(ctx context.Context, id uuid.UUID) (*domain.Wallet, error) {
 			assert.Equal(t, walletUUID, id)
 			return defaultWallet(), nil
 		}
@@ -276,7 +277,7 @@ func TestWalletHandler_Get(t *testing.T) {
 	t.Run("not found", func(t *testing.T) {
 		t.Parallel()
 		th := newHarness()
-		th.mws.getByIDFn = func(id uuid.UUID) (*domain.Wallet, error) {
+		th.mws.getByIDFn = func(ctx context.Context, id uuid.UUID) (*domain.Wallet, error) {
 			return nil, errNotFound
 		}
 
@@ -301,7 +302,7 @@ func TestWalletHandler_TopUp(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		t.Parallel()
 		th := newHarness()
-		th.mws.topUpFn = func(id uuid.UUID, req domain.TopUpRequest) (*domain.TopUpResponse, error) {
+		th.mws.topUpFn = func(ctx context.Context, id uuid.UUID, req domain.TopUpRequest) (*domain.TopUpResponse, error) {
 			assert.Equal(t, walletUUID, id)
 			return &domain.TopUpResponse{
 				WalletID: walletUUID.String(),
@@ -343,7 +344,7 @@ func TestWalletHandler_TopUp(t *testing.T) {
 	t.Run("wallet not found", func(t *testing.T) {
 		t.Parallel()
 		th := newHarness()
-		th.mws.topUpFn = func(id uuid.UUID, req domain.TopUpRequest) (*domain.TopUpResponse, error) {
+		th.mws.topUpFn = func(ctx context.Context, id uuid.UUID, req domain.TopUpRequest) (*domain.TopUpResponse, error) {
 			return nil, errNotFound
 		}
 
@@ -360,7 +361,7 @@ func TestWalletHandler_TopUp(t *testing.T) {
 	t.Run("wallet suspended", func(t *testing.T) {
 		t.Parallel()
 		th := newHarness()
-		th.mws.topUpFn = func(id uuid.UUID, req domain.TopUpRequest) (*domain.TopUpResponse, error) {
+		th.mws.topUpFn = func(ctx context.Context, id uuid.UUID, req domain.TopUpRequest) (*domain.TopUpResponse, error) {
 			return nil, errWalletSuspended
 		}
 
@@ -377,7 +378,7 @@ func TestWalletHandler_TopUp(t *testing.T) {
 	t.Run("amount too small", func(t *testing.T) {
 		t.Parallel()
 		th := newHarness()
-		th.mws.topUpFn = func(id uuid.UUID, req domain.TopUpRequest) (*domain.TopUpResponse, error) {
+		th.mws.topUpFn = func(ctx context.Context, id uuid.UUID, req domain.TopUpRequest) (*domain.TopUpResponse, error) {
 			return nil, errAmountTooSmall
 		}
 
@@ -414,7 +415,7 @@ func TestWalletHandler_Pay(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		t.Parallel()
 		th := newHarness()
-		th.mws.payFn = func(id uuid.UUID, req domain.PayRequest) (*domain.PayResponse, error) {
+		th.mws.payFn = func(ctx context.Context, id uuid.UUID, req domain.PayRequest) (*domain.PayResponse, error) {
 			assert.Equal(t, walletUUID, id)
 			return &domain.PayResponse{
 				WalletID: walletUUID.String(),
@@ -452,7 +453,7 @@ func TestWalletHandler_Pay(t *testing.T) {
 	t.Run("insufficient balance", func(t *testing.T) {
 		t.Parallel()
 		th := newHarness()
-		th.mws.payFn = func(id uuid.UUID, req domain.PayRequest) (*domain.PayResponse, error) {
+		th.mws.payFn = func(ctx context.Context, id uuid.UUID, req domain.PayRequest) (*domain.PayResponse, error) {
 			return nil, errInsufficientBalance
 		}
 
@@ -471,7 +472,7 @@ func TestWalletHandler_Pay(t *testing.T) {
 	t.Run("wallet suspended", func(t *testing.T) {
 		t.Parallel()
 		th := newHarness()
-		th.mws.payFn = func(id uuid.UUID, req domain.PayRequest) (*domain.PayResponse, error) {
+		th.mws.payFn = func(ctx context.Context, id uuid.UUID, req domain.PayRequest) (*domain.PayResponse, error) {
 			return nil, errWalletSuspended
 		}
 
@@ -488,7 +489,7 @@ func TestWalletHandler_Pay(t *testing.T) {
 	t.Run("wallet not found", func(t *testing.T) {
 		t.Parallel()
 		th := newHarness()
-		th.mws.payFn = func(id uuid.UUID, req domain.PayRequest) (*domain.PayResponse, error) {
+		th.mws.payFn = func(ctx context.Context, id uuid.UUID, req domain.PayRequest) (*domain.PayResponse, error) {
 			return nil, errNotFound
 		}
 
@@ -528,7 +529,7 @@ func TestWalletHandler_Transfer(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		t.Parallel()
 		th := newHarness()
-		th.mws.transferFn = func(req domain.TransferRequest) (*domain.TransferResponse, error) {
+		th.mws.transferFn = func(ctx context.Context, req domain.TransferRequest) (*domain.TransferResponse, error) {
 			return &domain.TransferResponse{
 				TransferID:  transferID,
 				FromBalance: "400.00",
@@ -554,7 +555,7 @@ func TestWalletHandler_Transfer(t *testing.T) {
 	t.Run("currency mismatch", func(t *testing.T) {
 		t.Parallel()
 		th := newHarness()
-		th.mws.transferFn = func(req domain.TransferRequest) (*domain.TransferResponse, error) {
+		th.mws.transferFn = func(ctx context.Context, req domain.TransferRequest) (*domain.TransferResponse, error) {
 			return nil, errCurrencyMismatch
 		}
 
@@ -573,7 +574,7 @@ func TestWalletHandler_Transfer(t *testing.T) {
 	t.Run("same wallet", func(t *testing.T) {
 		t.Parallel()
 		th := newHarness()
-		th.mws.transferFn = func(req domain.TransferRequest) (*domain.TransferResponse, error) {
+		th.mws.transferFn = func(ctx context.Context, req domain.TransferRequest) (*domain.TransferResponse, error) {
 			return nil, errSameWallet
 		}
 
@@ -592,7 +593,7 @@ func TestWalletHandler_Transfer(t *testing.T) {
 	t.Run("insufficient balance", func(t *testing.T) {
 		t.Parallel()
 		th := newHarness()
-		th.mws.transferFn = func(req domain.TransferRequest) (*domain.TransferResponse, error) {
+		th.mws.transferFn = func(ctx context.Context, req domain.TransferRequest) (*domain.TransferResponse, error) {
 			return nil, errInsufficientBalance
 		}
 
@@ -608,7 +609,7 @@ func TestWalletHandler_Transfer(t *testing.T) {
 	t.Run("wallet suspended", func(t *testing.T) {
 		t.Parallel()
 		th := newHarness()
-		th.mws.transferFn = func(req domain.TransferRequest) (*domain.TransferResponse, error) {
+		th.mws.transferFn = func(ctx context.Context, req domain.TransferRequest) (*domain.TransferResponse, error) {
 			return nil, errWalletSuspended
 		}
 
@@ -624,7 +625,7 @@ func TestWalletHandler_Transfer(t *testing.T) {
 	t.Run("wallet not found", func(t *testing.T) {
 		t.Parallel()
 		th := newHarness()
-		th.mws.transferFn = func(req domain.TransferRequest) (*domain.TransferResponse, error) {
+		th.mws.transferFn = func(ctx context.Context, req domain.TransferRequest) (*domain.TransferResponse, error) {
 			return nil, errNotFound
 		}
 
@@ -659,7 +660,7 @@ func TestWalletHandler_Suspend(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		t.Parallel()
 		th := newHarness()
-		th.mws.suspendFn = func(id uuid.UUID) (*domain.SuspendResponse, error) {
+		th.mws.suspendFn = func(ctx context.Context, id uuid.UUID) (*domain.SuspendResponse, error) {
 			return &domain.SuspendResponse{
 				WalletID: walletUUID.String(),
 				Status:   domain.WalletStatusSuspended,
@@ -683,7 +684,7 @@ func TestWalletHandler_Suspend(t *testing.T) {
 	t.Run("not found", func(t *testing.T) {
 		t.Parallel()
 		th := newHarness()
-		th.mws.suspendFn = func(id uuid.UUID) (*domain.SuspendResponse, error) {
+		th.mws.suspendFn = func(ctx context.Context, id uuid.UUID) (*domain.SuspendResponse, error) {
 			return nil, errNotFound
 		}
 
@@ -718,7 +719,7 @@ func TestWalletHandler_Reconcile(t *testing.T) {
 	t.Run("success match", func(t *testing.T) {
 		t.Parallel()
 		th := newHarness()
-		th.mrs.reconcileFn = func(id uuid.UUID) (*domain.ReconcileResponse, error) {
+		th.mrs.reconcileFn = func(ctx context.Context, id uuid.UUID) (*domain.ReconcileResponse, error) {
 			return &domain.ReconcileResponse{
 				WalletID:      walletUUID.String(),
 				CachedBalance: "500.00",
@@ -748,7 +749,7 @@ func TestWalletHandler_Reconcile(t *testing.T) {
 	t.Run("success mismatch", func(t *testing.T) {
 		t.Parallel()
 		th := newHarness()
-		th.mrs.reconcileFn = func(id uuid.UUID) (*domain.ReconcileResponse, error) {
+		th.mrs.reconcileFn = func(ctx context.Context, id uuid.UUID) (*domain.ReconcileResponse, error) {
 			return &domain.ReconcileResponse{
 				WalletID:      walletUUID.String(),
 				CachedBalance: "500.00",
@@ -774,7 +775,7 @@ func TestWalletHandler_Reconcile(t *testing.T) {
 	t.Run("not found", func(t *testing.T) {
 		t.Parallel()
 		th := newHarness()
-		th.mrs.reconcileFn = func(id uuid.UUID) (*domain.ReconcileResponse, error) {
+		th.mrs.reconcileFn = func(ctx context.Context, id uuid.UUID) (*domain.ReconcileResponse, error) {
 			return nil, errNotFound
 		}
 
@@ -809,7 +810,7 @@ func TestWalletHandler_RouterSetup(t *testing.T) {
 	assert.NotNil(t, app)
 
 	// Quick smoke: GET /api/wallets/:id when wallet doesn't exist should 404.
-	th.mws.getByIDFn = func(id uuid.UUID) (*domain.Wallet, error) {
+	th.mws.getByIDFn = func(ctx context.Context, id uuid.UUID) (*domain.Wallet, error) {
 		return nil, errNotFound
 	}
 	resp, err := doRequest(app, http.MethodGet,
@@ -842,7 +843,7 @@ func TestWalletHandler_ErrorMapping(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			th := newHarness()
-			th.mws.topUpFn = func(id uuid.UUID, req domain.TopUpRequest) (*domain.TopUpResponse, error) {
+			th.mws.topUpFn = func(ctx context.Context, id uuid.UUID, req domain.TopUpRequest) (*domain.TopUpResponse, error) {
 				return nil, tt.svcErr
 			}
 
@@ -867,7 +868,7 @@ func TestWalletHandler_ErrorMapping(t *testing.T) {
 func TestWalletHandler_ResponseEnvelope(t *testing.T) {
 	t.Parallel()
 	th := newHarness()
-	th.mws.createFn = func(req domain.CreateWalletRequest) (*domain.Wallet, error) {
+	th.mws.createFn = func(ctx context.Context, req domain.CreateWalletRequest) (*domain.Wallet, error) {
 		return defaultWallet(), nil
 	}
 
@@ -896,7 +897,7 @@ func TestWalletHandler_ResponseEnvelope(t *testing.T) {
 func TestWalletHandler_Create_InvalidCurrency(t *testing.T) {
 	t.Parallel()
 	th := newHarness()
-	th.mws.createFn = func(req domain.CreateWalletRequest) (*domain.Wallet, error) {
+	th.mws.createFn = func(ctx context.Context, req domain.CreateWalletRequest) (*domain.Wallet, error) {
 		return nil, service.ErrInvalidCurrency
 	}
 
@@ -915,7 +916,7 @@ func TestWalletHandler_Create_GenericError(t *testing.T) {
 	t.Parallel()
 	genericErr := errors.New("database unreachable")
 	th := newHarness()
-	th.mws.createFn = func(req domain.CreateWalletRequest) (*domain.Wallet, error) {
+	th.mws.createFn = func(ctx context.Context, req domain.CreateWalletRequest) (*domain.Wallet, error) {
 		return nil, genericErr
 	}
 
@@ -934,7 +935,7 @@ func TestWalletHandler_Get_GenericError(t *testing.T) {
 	t.Parallel()
 	genericErr := errors.New("database unreachable")
 	th := newHarness()
-	th.mws.getByIDFn = func(id uuid.UUID) (*domain.Wallet, error) {
+	th.mws.getByIDFn = func(ctx context.Context, id uuid.UUID) (*domain.Wallet, error) {
 		return nil, genericErr
 	}
 
@@ -1005,7 +1006,7 @@ func TestWalletHandler_Suspend_GenericError(t *testing.T) {
 	t.Parallel()
 	genericErr := errors.New("database unreachable")
 	th := newHarness()
-	th.mws.suspendFn = func(id uuid.UUID) (*domain.SuspendResponse, error) {
+	th.mws.suspendFn = func(ctx context.Context, id uuid.UUID) (*domain.SuspendResponse, error) {
 		return nil, genericErr
 	}
 
@@ -1025,7 +1026,7 @@ func TestWalletHandler_Reconcile_GenericError(t *testing.T) {
 	t.Parallel()
 	genericErr := errors.New("database unreachable")
 	th := newHarness()
-	th.mrs.reconcileFn = func(id uuid.UUID) (*domain.ReconcileResponse, error) {
+	th.mrs.reconcileFn = func(ctx context.Context, id uuid.UUID) (*domain.ReconcileResponse, error) {
 		return nil, genericErr
 	}
 
@@ -1045,7 +1046,7 @@ func TestWalletHandler_TopUp_GenericError(t *testing.T) {
 	t.Parallel()
 	genericErr := errors.New("unexpected error")
 	th := newHarness()
-	th.mws.topUpFn = func(id uuid.UUID, req domain.TopUpRequest) (*domain.TopUpResponse, error) {
+	th.mws.topUpFn = func(ctx context.Context, id uuid.UUID, req domain.TopUpRequest) (*domain.TopUpResponse, error) {
 		return nil, genericErr
 	}
 

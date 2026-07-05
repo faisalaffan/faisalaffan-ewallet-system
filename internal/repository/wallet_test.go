@@ -249,7 +249,7 @@ func TestWalletRepository_DB(t *testing.T) {
 	db := setupTestDB(t)
 	repo := NewWalletRepository(db)
 
-	gdb := repo.DB()
+	gdb := repo.DB(context.Background())
 	assert.NotNil(t, gdb)
 }
 

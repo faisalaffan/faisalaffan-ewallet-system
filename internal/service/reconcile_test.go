@@ -1,6 +1,7 @@
 package service_test
 
 import (
+	"context"
 	"errors"
 	"testing"
 
@@ -21,7 +22,7 @@ type mockReconcileWalletRepo struct {
 	findByIDFn func(id uuid.UUID) (*domain.Wallet, error)
 }
 
-func (m *mockReconcileWalletRepo) DB() *gorm.DB {
+func (m *mockReconcileWalletRepo) DB(ctx context.Context) *gorm.DB {
 	return nil
 }
 
@@ -101,7 +102,7 @@ func TestReconcileService_Reconcile(t *testing.T) {
 		}
 
 		svc := service.NewReconcileService(walletRepo, ledgerRepo)
-		resp, err := svc.Reconcile(w.ID)
+		resp, err := svc.Reconcile(context.Background(), w.ID)
 
 		assert.NoError(t, err)
 		assert.NotNil(t, resp)
@@ -127,7 +128,7 @@ func TestReconcileService_Reconcile(t *testing.T) {
 		}
 
 		svc := service.NewReconcileService(walletRepo, ledgerRepo)
-		resp, err := svc.Reconcile(w.ID)
+		resp, err := svc.Reconcile(context.Background(), w.ID)
 
 		assert.NoError(t, err)
 		assert.NotNil(t, resp)
@@ -152,7 +153,7 @@ func TestReconcileService_Reconcile(t *testing.T) {
 		}
 
 		svc := service.NewReconcileService(walletRepo, ledgerRepo)
-		resp, err := svc.Reconcile(w.ID)
+		resp, err := svc.Reconcile(context.Background(), w.ID)
 
 		assert.NoError(t, err)
 		assert.NotNil(t, resp)
@@ -175,7 +176,7 @@ func TestReconcileService_Reconcile(t *testing.T) {
 		}
 
 		svc := service.NewReconcileService(walletRepo, ledgerRepo)
-		resp, err := svc.Reconcile(uuid.New())
+		resp, err := svc.Reconcile(context.Background(), uuid.New())
 
 		assert.Nil(t, resp)
 		assert.ErrorIs(t, err, service.ErrNotFound)
@@ -196,7 +197,7 @@ func TestReconcileService_Reconcile(t *testing.T) {
 		}
 
 		svc := service.NewReconcileService(walletRepo, ledgerRepo)
-		resp, err := svc.Reconcile(uuid.New())
+		resp, err := svc.Reconcile(context.Background(), uuid.New())
 
 		assert.Nil(t, resp)
 		assert.ErrorIs(t, err, genericErr)
@@ -218,7 +219,7 @@ func TestReconcileService_Reconcile(t *testing.T) {
 		}
 
 		svc := service.NewReconcileService(walletRepo, ledgerRepo)
-		resp, err := svc.Reconcile(w.ID)
+		resp, err := svc.Reconcile(context.Background(), w.ID)
 
 		assert.Nil(t, resp)
 		assert.ErrorIs(t, err, ledgerErr)
@@ -240,7 +241,7 @@ func TestReconcileService_Reconcile(t *testing.T) {
 		}
 
 		svc := service.NewReconcileService(walletRepo, ledgerRepo)
-		resp, err := svc.Reconcile(w.ID)
+		resp, err := svc.Reconcile(context.Background(), w.ID)
 
 		assert.NoError(t, err)
 		assert.NotNil(t, resp)

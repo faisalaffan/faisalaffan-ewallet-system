@@ -50,7 +50,7 @@ func (h *WalletHandler) Create(c fiber.Ctx) error {
 		return c.Status(422).JSON(response.ValidationError("owner_id and currency are required", nil))
 	}
 
-	w, svcErr := h.walletSvc.Create(req)
+	w, svcErr := h.walletSvc.Create(c.Context(), req)
 	if svcErr != nil {
 		err = svcErr
 		if errors.Is(err, service.ErrAlreadyExists) {
@@ -85,7 +85,7 @@ func (h *WalletHandler) Get(c fiber.Ctx) error {
 		return c.Status(400).JSON(response.Error(400, "INVALID_ID", "invalid wallet id"))
 	}
 
-	w, svcErr := h.walletSvc.GetByID(id)
+	w, svcErr := h.walletSvc.GetByID(c.Context(), id)
 	if svcErr != nil {
 		err = svcErr
 		if errors.Is(err, service.ErrNotFound) {
@@ -129,7 +129,7 @@ func (h *WalletHandler) TopUp(c fiber.Ctx) error {
 		return c.Status(422).JSON(response.ValidationError("idempotency_key is required", nil))
 	}
 
-	result, svcErr := h.walletSvc.TopUp(id, req)
+	result, svcErr := h.walletSvc.TopUp(c.Context(), id, req)
 	if svcErr != nil {
 		err = svcErr
 		return mapWalletError(c, err)
@@ -170,7 +170,7 @@ func (h *WalletHandler) Pay(c fiber.Ctx) error {
 		return c.Status(422).JSON(response.ValidationError("idempotency_key is required", nil))
 	}
 
-	result, svcErr := h.walletSvc.Pay(id, req)
+	result, svcErr := h.walletSvc.Pay(c.Context(), id, req)
 	if svcErr != nil {
 		err = svcErr
 		return mapWalletError(c, err)
@@ -205,7 +205,7 @@ func (h *WalletHandler) Transfer(c fiber.Ctx) error {
 		return c.Status(422).JSON(response.ValidationError("idempotency_key is required", nil))
 	}
 
-	result, svcErr := h.walletSvc.Transfer(req)
+	result, svcErr := h.walletSvc.Transfer(c.Context(), req)
 	if svcErr != nil {
 		err = svcErr
 		return mapWalletError(c, err)
@@ -234,7 +234,7 @@ func (h *WalletHandler) Suspend(c fiber.Ctx) error {
 		return c.Status(400).JSON(response.Error(400, "INVALID_ID", "invalid wallet id"))
 	}
 
-	result, svcErr := h.walletSvc.Suspend(id)
+	result, svcErr := h.walletSvc.Suspend(c.Context(), id)
 	if svcErr != nil {
 		err = svcErr
 		if errors.Is(err, service.ErrNotFound) {
@@ -266,7 +266,7 @@ func (h *WalletHandler) Reconcile(c fiber.Ctx) error {
 		return c.Status(400).JSON(response.Error(400, "INVALID_ID", "invalid wallet id"))
 	}
 
-	result, svcErr := h.reconcileSvc.Reconcile(id)
+	result, svcErr := h.reconcileSvc.Reconcile(c.Context(), id)
 	if svcErr != nil {
 		err = svcErr
 		if errors.Is(err, service.ErrNotFound) {

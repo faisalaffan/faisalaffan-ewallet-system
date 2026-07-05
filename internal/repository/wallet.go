@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"context"
 	"errors"
 
 	"github.com/faisalaffan/ewallet-system/internal/domain"
@@ -17,8 +18,8 @@ func NewWalletRepository(db *gorm.DB) *WalletRepository {
 	return &WalletRepository{db: db}
 }
 
-func (r *WalletRepository) DB() *gorm.DB {
-	return r.db
+func (r *WalletRepository) DB(ctx context.Context) *gorm.DB {
+	return r.db.WithContext(ctx)
 }
 
 func (r *WalletRepository) Create(tx *gorm.DB, w *domain.Wallet) error {

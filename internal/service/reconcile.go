@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"errors"
 
 	"github.com/faisalaffan/ewallet-system/internal/domain"
@@ -11,7 +12,7 @@ import (
 
 // ReconcileServiceInterface defines the contract for reconcile operations used by the handler.
 type ReconcileServiceInterface interface {
-	Reconcile(id uuid.UUID) (*domain.ReconcileResponse, error)
+	Reconcile(ctx context.Context, id uuid.UUID) (*domain.ReconcileResponse, error)
 }
 
 // Ensure ReconcileService satisfies ReconcileServiceInterface at compile time.
@@ -26,7 +27,7 @@ func NewReconcileService(walletRepo WalletRepository, ledgerRepo LedgerRepositor
 	return &ReconcileService{walletRepo: walletRepo, ledgerRepo: ledgerRepo}
 }
 
-func (s *ReconcileService) Reconcile(id uuid.UUID) (*domain.ReconcileResponse, error) {
+func (s *ReconcileService) Reconcile(ctx context.Context, id uuid.UUID) (*domain.ReconcileResponse, error) {
 	w, err := s.walletRepo.FindByID(id)
 	if err != nil {
 		if errors.Is(err, repository.ErrNotFound) {
