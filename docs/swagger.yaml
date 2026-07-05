@@ -424,7 +424,7 @@ paths:
       tags:
       - wallets
 securityDefinitions:
-  BearerAuth:
+  ApiKeyAuth:
     in: header
     name: Authorization
     type: apiKey
