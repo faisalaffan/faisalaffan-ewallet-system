@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ewallet-api
+  namespace: ewallet
+  labels:
+    app: ewallet-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ewallet-api
+  template:
+    metadata:
+      labels:
+        app: ewallet-api
+    spec:
+      containers:
+        - name: ewallet-api
+          image: ghcr.io/faisalaffan/ewallet-system:dev
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+              name: http
+          env:
+            - name: APP_PORT
+              value: "8080"
+            - name: OTEL_SERVICE_NAME
+              value: ewallet-api
+            - name: OTEL_DEPLOYMENT_ENVIRONMENT
+              value: production
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: otel-collector.observability:4318
+            - name: OTEL_EXPORTER_OTLP_INSECURE
+              value: "true"
+            - name: OTEL_TRACES_SAMPLER
+              value: always_on
+            - name: METRICS_PORT
+              value: "9090"
+          envFrom:
+            - secretRef:
+                name: ewallet-secrets
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+          livenessProbe:
+            httpGet:
+              path: /api/wallets
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 15
+          readinessProbe:
+            httpGet:
+              path: /api/wallets
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10

@@ -1,0 +1,427 @@
+basePath: /api
+definitions:
+  github_com_faisalaffan_ewallet-system_internal_domain.CreateWalletRequest:
+    properties:
+      currency:
+        type: string
+      owner_id:
+        type: string
+    type: object
+  github_com_faisalaffan_ewallet-system_internal_domain.PayRequest:
+    properties:
+      amount:
+        type: string
+      idempotency_key:
+        type: string
+    type: object
+  github_com_faisalaffan_ewallet-system_internal_domain.PayResponse:
+    properties:
+      balance:
+        type: string
+      entry_id:
+        type: string
+      wallet_id:
+        type: string
+    type: object
+  github_com_faisalaffan_ewallet-system_internal_domain.ReconcileResponse:
+    properties:
+      cached_balance:
+        type: string
+      diff:
+        type: string
+      ledger_sum:
+        type: string
+      match:
+        type: boolean
+      wallet_id:
+        type: string
+    type: object
+  github_com_faisalaffan_ewallet-system_internal_domain.SuspendResponse:
+    properties:
+      status:
+        $ref: '#/definitions/github_com_faisalaffan_ewallet-system_internal_domain.WalletStatus'
+      wallet_id:
+        type: string
+    type: object
+  github_com_faisalaffan_ewallet-system_internal_domain.TopUpRequest:
+    properties:
+      amount:
+        type: string
+      idempotency_key:
+        type: string
+    type: object
+  github_com_faisalaffan_ewallet-system_internal_domain.TopUpResponse:
+    properties:
+      balance:
+        type: string
+      entry_id:
+        type: string
+      wallet_id:
+        type: string
+    type: object
+  github_com_faisalaffan_ewallet-system_internal_domain.TransferRequest:
+    properties:
+      amount:
+        type: string
+      from_wallet_id:
+        type: string
+      idempotency_key:
+        type: string
+      to_wallet_id:
+        type: string
+    type: object
+  github_com_faisalaffan_ewallet-system_internal_domain.TransferResponse:
+    properties:
+      from_balance:
+        type: string
+      to_balance:
+        type: string
+      transfer_id:
+        type: string
+    type: object
+  github_com_faisalaffan_ewallet-system_internal_domain.Wallet:
+    properties:
+      balance:
+        type: string
+      created_at:
+        type: string
+      currency:
+        type: string
+      owner_id:
+        type: string
+      status:
+        $ref: '#/definitions/github_com_faisalaffan_ewallet-system_internal_domain.WalletStatus'
+      updated_at:
+        type: string
+      wallet_id:
+        type: string
+    type: object
+  github_com_faisalaffan_ewallet-system_internal_domain.WalletStatus:
+    enum:
+    - ACTIVE
+    - SUSPENDED
+    type: string
+    x-enum-varnames:
+    - WalletStatusActive
+    - WalletStatusSuspended
+  github_com_faisalaffan_ewallet-system_pkg_response.Envelope:
+    properties:
+      data: {}
+      error:
+        $ref: '#/definitions/github_com_faisalaffan_ewallet-system_pkg_response.apiError'
+      pagination:
+        $ref: '#/definitions/github_com_faisalaffan_ewallet-system_pkg_response.pagination'
+      status:
+        type: string
+    type: object
+  github_com_faisalaffan_ewallet-system_pkg_response.ValidationDetail:
+    properties:
+      field:
+        type: string
+      message:
+        type: string
+    type: object
+  github_com_faisalaffan_ewallet-system_pkg_response.apiError:
+    properties:
+      code:
+        type: string
+      details:
+        items:
+          $ref: '#/definitions/github_com_faisalaffan_ewallet-system_pkg_response.ValidationDetail'
+        type: array
+      message:
+        type: string
+    type: object
+  github_com_faisalaffan_ewallet-system_pkg_response.pagination:
+    properties:
+      page:
+        type: integer
+      per_page:
+        type: integer
+      total:
+        type: integer
+      total_pages:
+        type: integer
+    type: object
+info:
+  contact: {}
+  description: Ledger-based e-wallet backend with multi-currency support.
+  title: Multi-Currency E-Wallet API
+  version: "1.0"
+paths:
+  /wallets:
+    post:
+      consumes:
+      - application/json
+      description: Create wallet for an owner with a specific currency
+      parameters:
+      - description: Create wallet request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_faisalaffan_ewallet-system_internal_domain.CreateWalletRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_faisalaffan_ewallet-system_pkg_response.Envelope'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_faisalaffan_ewallet-system_internal_domain.Wallet'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_faisalaffan_ewallet-system_pkg_response.Envelope'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/github_com_faisalaffan_ewallet-system_pkg_response.Envelope'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/github_com_faisalaffan_ewallet-system_pkg_response.Envelope'
+      summary: Create a new wallet
+      tags:
+      - wallets
+  /wallets/{id}:
+    get:
+      description: Retrieve wallet details including balance and status
+      parameters:
+      - description: Wallet ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_faisalaffan_ewallet-system_pkg_response.Envelope'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_faisalaffan_ewallet-system_internal_domain.Wallet'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_faisalaffan_ewallet-system_pkg_response.Envelope'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_faisalaffan_ewallet-system_pkg_response.Envelope'
+      summary: Get wallet by ID
+      tags:
+      - wallets
+  /wallets/{id}/pay:
+    post:
+      consumes:
+      - application/json
+      description: Deduct funds from wallet. Insufficient balance returns 422.
+      parameters:
+      - description: Wallet ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Payment request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_faisalaffan_ewallet-system_internal_domain.PayRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_faisalaffan_ewallet-system_pkg_response.Envelope'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_faisalaffan_ewallet-system_internal_domain.PayResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_faisalaffan_ewallet-system_pkg_response.Envelope'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_faisalaffan_ewallet-system_pkg_response.Envelope'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/github_com_faisalaffan_ewallet-system_pkg_response.Envelope'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/github_com_faisalaffan_ewallet-system_pkg_response.Envelope'
+      summary: Make a payment
+      tags:
+      - wallets
+  /wallets/{id}/reconcile:
+    get:
+      description: Compare cached balance against SUM(ledger_entries). Returns match
+        status and diff.
+      parameters:
+      - description: Wallet ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_faisalaffan_ewallet-system_pkg_response.Envelope'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_faisalaffan_ewallet-system_internal_domain.ReconcileResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_faisalaffan_ewallet-system_pkg_response.Envelope'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_faisalaffan_ewallet-system_pkg_response.Envelope'
+      summary: Reconcile wallet balance
+      tags:
+      - wallets
+  /wallets/{id}/suspend:
+    post:
+      description: Suspend wallet. Idempotent — already suspended returns 200.
+      parameters:
+      - description: Wallet ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_faisalaffan_ewallet-system_pkg_response.Envelope'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_faisalaffan_ewallet-system_internal_domain.SuspendResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_faisalaffan_ewallet-system_pkg_response.Envelope'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_faisalaffan_ewallet-system_pkg_response.Envelope'
+      summary: Suspend a wallet
+      tags:
+      - wallets
+  /wallets/{id}/topup:
+    post:
+      consumes:
+      - application/json
+      description: Add funds to wallet. Idempotent via idempotency_key.
+      parameters:
+      - description: Wallet ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Top-up request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_faisalaffan_ewallet-system_internal_domain.TopUpRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_faisalaffan_ewallet-system_pkg_response.Envelope'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_faisalaffan_ewallet-system_internal_domain.TopUpResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_faisalaffan_ewallet-system_pkg_response.Envelope'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_faisalaffan_ewallet-system_pkg_response.Envelope'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/github_com_faisalaffan_ewallet-system_pkg_response.Envelope'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/github_com_faisalaffan_ewallet-system_pkg_response.Envelope'
+      summary: Top-up wallet balance
+      tags:
+      - wallets
+  /wallets/transfer:
+    post:
+      consumes:
+      - application/json
+      description: Transfer funds from one wallet to another. Both must be same currency.
+      parameters:
+      - description: Transfer request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_faisalaffan_ewallet-system_internal_domain.TransferRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_faisalaffan_ewallet-system_pkg_response.Envelope'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_faisalaffan_ewallet-system_internal_domain.TransferResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_faisalaffan_ewallet-system_pkg_response.Envelope'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_faisalaffan_ewallet-system_pkg_response.Envelope'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/github_com_faisalaffan_ewallet-system_pkg_response.Envelope'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/github_com_faisalaffan_ewallet-system_pkg_response.Envelope'
+      summary: Transfer between wallets
+      tags:
+      - wallets
+swagger: "2.0"
