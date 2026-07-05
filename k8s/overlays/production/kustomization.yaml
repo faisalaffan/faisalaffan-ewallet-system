@@ -8,11 +8,5 @@ resources:
   - ingress.yaml
 
 images:
-  - name: ghcr.io/faisalaffan/ewallet-system
-    newTag: latest
-
-secretGenerator:
-  - name: ewallet-secrets
-    envs:
-      - .env
-    behavior: replace
+  - name: ghcr.io/faisalaffan/faisalaffan-ewallet-system
+    newTag: dev
