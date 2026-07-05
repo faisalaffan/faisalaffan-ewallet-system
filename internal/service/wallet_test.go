@@ -205,7 +205,7 @@ func TestWalletService_Create(t *testing.T) {
 			},
 		}
 
-		svc := service.NewWalletService(wm, lm)
+		svc := service.NewWalletService(wm, lm, nil)
 		req := domain.CreateWalletRequest{OwnerID: "alice", Currency: "EUR"}
 		w, err := svc.Create(req)
 
@@ -261,7 +261,7 @@ func TestWalletService_Create(t *testing.T) {
 			},
 		}
 
-		svc := service.NewWalletService(wm, lm)
+		svc := service.NewWalletService(wm, lm, nil)
 		req := domain.CreateWalletRequest{OwnerID: "alice", Currency: "USD"}
 		_, err := svc.Create(req)
 
@@ -304,7 +304,7 @@ func TestWalletService_Create(t *testing.T) {
 			},
 		}
 
-		svc := service.NewWalletService(wm, lm)
+		svc := service.NewWalletService(wm, lm, nil)
 
 		// Currency with length != 3
 		_, err1 := svc.Create(domain.CreateWalletRequest{OwnerID: "alice", Currency: "US"})
@@ -362,7 +362,7 @@ func TestWalletService_GetByID(t *testing.T) {
 				return "0", "0", "0", "0", nil
 			},
 		}
-		svc := service.NewWalletService(wm, lm)
+		svc := service.NewWalletService(wm, lm, nil)
 
 		got, err := svc.GetByID(want.ID)
 		require.NoError(t, err)
@@ -406,7 +406,7 @@ func TestWalletService_GetByID(t *testing.T) {
 				return "0", "0", "0", "0", nil
 			},
 		}
-		svc := service.NewWalletService(wm, lm)
+		svc := service.NewWalletService(wm, lm, nil)
 
 		_, err := svc.GetByID(uuid.New())
 		assert.ErrorIs(t, err, service.ErrNotFound)
@@ -462,7 +462,7 @@ func TestWalletService_TopUp(t *testing.T) {
 			},
 		}
 
-		svc := service.NewWalletService(wm, lm)
+		svc := service.NewWalletService(wm, lm, nil)
 		resp, err := svc.TopUp(w.ID, domain.TopUpRequest{
 			Amount:         "50.00",
 			IdempotencyKey: "topup-1",
@@ -539,7 +539,7 @@ func TestWalletService_TopUp(t *testing.T) {
 			},
 		}
 
-		svc := service.NewWalletService(wm, lm)
+		svc := service.NewWalletService(wm, lm, nil)
 
 		// First call — original top-up
 		resp1, err := svc.TopUp(w.ID, domain.TopUpRequest{
@@ -596,7 +596,7 @@ func TestWalletService_TopUp(t *testing.T) {
 				return "0", "0", "0", "0", nil
 			},
 		}
-		svc := service.NewWalletService(wm, lm)
+		svc := service.NewWalletService(wm, lm, nil)
 
 		_, err := svc.TopUp(uuid.New(), domain.TopUpRequest{
 			Amount:         "50.00",
@@ -643,7 +643,7 @@ func TestWalletService_TopUp(t *testing.T) {
 				return "0", "0", "0", "0", nil
 			},
 		}
-		svc := service.NewWalletService(wm, lm)
+		svc := service.NewWalletService(wm, lm, nil)
 
 		_, err := svc.TopUp(w.ID, domain.TopUpRequest{
 			Amount:         "50.00",
@@ -688,7 +688,7 @@ func TestWalletService_TopUp(t *testing.T) {
 				return "0", "0", "0", "0", nil
 			},
 		}
-		svc := service.NewWalletService(wm, lm)
+		svc := service.NewWalletService(wm, lm, nil)
 
 		_, err := svc.TopUp(w.ID, domain.TopUpRequest{
 			Amount:         "0.00",
@@ -733,7 +733,7 @@ func TestWalletService_TopUp(t *testing.T) {
 				return "0", "0", "0", "0", nil
 			},
 		}
-		svc := service.NewWalletService(wm, lm)
+		svc := service.NewWalletService(wm, lm, nil)
 
 		_, err := svc.TopUp(w.ID, domain.TopUpRequest{
 			Amount:         "-10.00",
@@ -778,7 +778,7 @@ func TestWalletService_TopUp(t *testing.T) {
 				return "0", "0", "0", "0", nil
 			},
 		}
-		svc := service.NewWalletService(wm, lm)
+		svc := service.NewWalletService(wm, lm, nil)
 
 		_, err := svc.TopUp(w.ID, domain.TopUpRequest{
 			Amount:         "not-a-number",
@@ -827,7 +827,7 @@ func TestWalletService_TopUp(t *testing.T) {
 				return "0", "0", "0", "0", nil
 			},
 		}
-		svc := service.NewWalletService(wm, lm)
+		svc := service.NewWalletService(wm, lm, nil)
 
 		resp, err := svc.TopUp(w.ID, domain.TopUpRequest{
 			Amount:         "12.345",
@@ -891,7 +891,7 @@ func TestWalletService_Pay(t *testing.T) {
 				return "0", "0", "0", "0", nil
 			},
 		}
-		svc := service.NewWalletService(wm, lm)
+		svc := service.NewWalletService(wm, lm, nil)
 
 		resp, err := svc.Pay(w.ID, domain.PayRequest{
 			Amount:         "30.00",
@@ -965,7 +965,7 @@ func TestWalletService_Pay(t *testing.T) {
 				return "0", "0", "0", "0", nil
 			},
 		}
-		svc := service.NewWalletService(wm, lm)
+		svc := service.NewWalletService(wm, lm, nil)
 
 		// First call
 		resp1, err := svc.Pay(w.ID, domain.PayRequest{
@@ -1023,7 +1023,7 @@ func TestWalletService_Pay(t *testing.T) {
 				return "0", "0", "0", "0", nil
 			},
 		}
-		svc := service.NewWalletService(wm, lm)
+		svc := service.NewWalletService(wm, lm, nil)
 
 		_, err := svc.Pay(w.ID, domain.PayRequest{
 			Amount:         "30.00",
@@ -1070,7 +1070,7 @@ func TestWalletService_Pay(t *testing.T) {
 				return "0", "0", "0", "0", nil
 			},
 		}
-		svc := service.NewWalletService(wm, lm)
+		svc := service.NewWalletService(wm, lm, nil)
 
 		_, err := svc.Pay(w.ID, domain.PayRequest{
 			Amount:         "30.00",
@@ -1114,7 +1114,7 @@ func TestWalletService_Pay(t *testing.T) {
 				return "0", "0", "0", "0", nil
 			},
 		}
-		svc := service.NewWalletService(wm, lm)
+		svc := service.NewWalletService(wm, lm, nil)
 
 		_, err := svc.Pay(uuid.New(), domain.PayRequest{
 			Amount:         "30.00",
@@ -1203,7 +1203,7 @@ func TestWalletService_Transfer(t *testing.T) {
 				return "0", "0", "0", "0", nil
 			},
 		}
-		svc := service.NewWalletService(wm, lm)
+		svc := service.NewWalletService(wm, lm, nil)
 
 		resp, err := svc.Transfer(domain.TransferRequest{
 			FromWalletID:   from.ID.String(),
@@ -1294,7 +1294,7 @@ func TestWalletService_Transfer(t *testing.T) {
 				return "0", "0", "0", "0", nil
 			},
 		}
-		svc := service.NewWalletService(wm, lm)
+		svc := service.NewWalletService(wm, lm, nil)
 
 		_, err := svc.Transfer(domain.TransferRequest{
 			FromWalletID:   from.ID.String(),
@@ -1342,7 +1342,7 @@ func TestWalletService_Transfer(t *testing.T) {
 				return "0", "0", "0", "0", nil
 			},
 		}
-		svc := service.NewWalletService(wm, lm)
+		svc := service.NewWalletService(wm, lm, nil)
 
 		_, err := svc.Transfer(domain.TransferRequest{
 			FromWalletID:   w.ID.String(),
@@ -1401,7 +1401,7 @@ func TestWalletService_Transfer(t *testing.T) {
 				return "0", "0", "0", "0", nil
 			},
 		}
-		svc := service.NewWalletService(wm, lm)
+		svc := service.NewWalletService(wm, lm, nil)
 
 		_, err := svc.Transfer(domain.TransferRequest{
 			FromWalletID:   from.ID.String(),
@@ -1460,7 +1460,7 @@ func TestWalletService_Transfer(t *testing.T) {
 				return "0", "0", "0", "0", nil
 			},
 		}
-		svc := service.NewWalletService(wm, lm)
+		svc := service.NewWalletService(wm, lm, nil)
 
 		_, err := svc.Transfer(domain.TransferRequest{
 			FromWalletID:   from.ID.String(),
@@ -1512,7 +1512,7 @@ func TestWalletService_Transfer(t *testing.T) {
 				return "0", "0", "0", "0", nil
 			},
 		}
-		svc := service.NewWalletService(wm, lm)
+		svc := service.NewWalletService(wm, lm, nil)
 
 		_, err := svc.Transfer(domain.TransferRequest{
 			FromWalletID:   from.ID.String(),
@@ -1593,7 +1593,7 @@ func TestWalletService_Transfer(t *testing.T) {
 				return "0", "0", "0", "0", nil
 			},
 		}
-		svc := service.NewWalletService(wm, lm)
+		svc := service.NewWalletService(wm, lm, nil)
 
 		// First call
 		resp1, err := svc.Transfer(domain.TransferRequest{
@@ -1667,7 +1667,7 @@ func TestWalletService_Suspend(t *testing.T) {
 				return "0", "0", "0", "0", nil
 			},
 		}
-		svc := service.NewWalletService(wm, lm)
+		svc := service.NewWalletService(wm, lm, nil)
 
 		resp, err := svc.Suspend(w.ID)
 
@@ -1718,7 +1718,7 @@ func TestWalletService_Suspend(t *testing.T) {
 				return "0", "0", "0", "0", nil
 			},
 		}
-		svc := service.NewWalletService(wm, lm)
+		svc := service.NewWalletService(wm, lm, nil)
 
 		resp, err := svc.Suspend(w.ID)
 
@@ -1763,7 +1763,7 @@ func TestWalletService_Suspend(t *testing.T) {
 				return "0", "0", "0", "0", nil
 			},
 		}
-		svc := service.NewWalletService(wm, lm)
+		svc := service.NewWalletService(wm, lm, nil)
 
 		_, err := svc.Suspend(uuid.New())
 		assert.ErrorIs(t, err, service.ErrNotFound)
@@ -1783,7 +1783,7 @@ func TestWalletService_Create_Errors(t *testing.T) {
 		wm.findByOwnerAndCurrencyFn = func(ownerID, currency string) (*domain.Wallet, error) {
 			return nil, errors.New("db error")
 		}
-		svc := service.NewWalletService(wm, lm)
+		svc := service.NewWalletService(wm, lm, nil)
 		_, err := svc.Create(domain.CreateWalletRequest{OwnerID: "alice", Currency: "USD"})
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "db error")
@@ -1795,7 +1795,7 @@ func TestWalletService_Create_Errors(t *testing.T) {
 		wm.createFn = func(tx *gorm.DB, w *domain.Wallet) error {
 			return errors.New("create error")
 		}
-		svc := service.NewWalletService(wm, lm)
+		svc := service.NewWalletService(wm, lm, nil)
 		_, err := svc.Create(domain.CreateWalletRequest{OwnerID: "alice", Currency: "USD"})
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "create error")
@@ -1815,7 +1815,7 @@ func TestWalletService_GetByID_Errors(t *testing.T) {
 		wm.findByIDFn = func(id uuid.UUID) (*domain.Wallet, error) {
 			return nil, errors.New("db error")
 		}
-		svc := service.NewWalletService(wm, lm)
+		svc := service.NewWalletService(wm, lm, nil)
 		_, err := svc.GetByID(uuid.New())
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "db error")
@@ -1837,7 +1837,7 @@ func TestWalletService_TopUp_Errors(t *testing.T) {
 		lm.findByIdempotencyKeyFn = func(key string) (*domain.LedgerEntry, error) {
 			return nil, errors.New("db error")
 		}
-		svc := service.NewWalletService(wm, lm)
+		svc := service.NewWalletService(wm, lm, nil)
 		_, err := svc.TopUp(w.ID, domain.TopUpRequest{
 			Amount: "50.00", IdempotencyKey: "key",
 		})
@@ -1860,7 +1860,7 @@ func TestWalletService_TopUp_Errors(t *testing.T) {
 		wm.findByIDFn = func(id uuid.UUID) (*domain.Wallet, error) {
 			return nil, errors.New("not found")
 		}
-		svc := service.NewWalletService(wm, lm)
+		svc := service.NewWalletService(wm, lm, nil)
 		_, err := svc.TopUp(w.ID, domain.TopUpRequest{
 			Amount: "50.00", IdempotencyKey: "key",
 		})
@@ -1875,7 +1875,7 @@ func TestWalletService_TopUp_Errors(t *testing.T) {
 		wm.findByIDForUpdateFn = func(tx *gorm.DB, id uuid.UUID) (*domain.Wallet, error) {
 			return nil, errors.New("db error")
 		}
-		svc := service.NewWalletService(wm, lm)
+		svc := service.NewWalletService(wm, lm, nil)
 		_, err := svc.TopUp(w.ID, domain.TopUpRequest{
 			Amount: "50.00", IdempotencyKey: "key",
 		})
@@ -1891,7 +1891,7 @@ func TestWalletService_TopUp_Errors(t *testing.T) {
 		lm.createFn = func(tx *gorm.DB, entry *domain.LedgerEntry) error {
 			return errors.New("ledger error")
 		}
-		svc := service.NewWalletService(wm, lm)
+		svc := service.NewWalletService(wm, lm, nil)
 		_, err := svc.TopUp(w.ID, domain.TopUpRequest{
 			Amount: "50.00", IdempotencyKey: "key",
 		})
@@ -1906,7 +1906,7 @@ func TestWalletService_TopUp_Errors(t *testing.T) {
 		wm.updateBalanceFn = func(tx *gorm.DB, id uuid.UUID, balance string) error {
 			return errors.New("balance error")
 		}
-		svc := service.NewWalletService(wm, lm)
+		svc := service.NewWalletService(wm, lm, nil)
 		_, err := svc.TopUp(w.ID, domain.TopUpRequest{
 			Amount: "50.00", IdempotencyKey: "key",
 		})
@@ -1926,7 +1926,7 @@ func TestWalletService_Pay_Errors(t *testing.T) {
 		db := setupDB()
 		w := testWallet()
 		wm, lm := defaultMocks(db, w)
-		svc := service.NewWalletService(wm, lm)
+		svc := service.NewWalletService(wm, lm, nil)
 		_, err := svc.Pay(w.ID, domain.PayRequest{
 			Amount: "invalid", IdempotencyKey: "key",
 		})
@@ -1940,7 +1940,7 @@ func TestWalletService_Pay_Errors(t *testing.T) {
 		lm.findByIdempotencyKeyFn = func(key string) (*domain.LedgerEntry, error) {
 			return nil, errors.New("db error")
 		}
-		svc := service.NewWalletService(wm, lm)
+		svc := service.NewWalletService(wm, lm, nil)
 		_, err := svc.Pay(w.ID, domain.PayRequest{
 			Amount: "50.00", IdempotencyKey: "key",
 		})
@@ -1963,7 +1963,7 @@ func TestWalletService_Pay_Errors(t *testing.T) {
 		wm.findByIDFn = func(id uuid.UUID) (*domain.Wallet, error) {
 			return nil, errors.New("not found")
 		}
-		svc := service.NewWalletService(wm, lm)
+		svc := service.NewWalletService(wm, lm, nil)
 		_, err := svc.Pay(w.ID, domain.PayRequest{
 			Amount: "50.00", IdempotencyKey: "key",
 		})
@@ -1978,7 +1978,7 @@ func TestWalletService_Pay_Errors(t *testing.T) {
 		wm.findByIDForUpdateFn = func(tx *gorm.DB, id uuid.UUID) (*domain.Wallet, error) {
 			return nil, errors.New("db error")
 		}
-		svc := service.NewWalletService(wm, lm)
+		svc := service.NewWalletService(wm, lm, nil)
 		_, err := svc.Pay(w.ID, domain.PayRequest{
 			Amount: "50.00", IdempotencyKey: "key",
 		})
@@ -1994,7 +1994,7 @@ func TestWalletService_Pay_Errors(t *testing.T) {
 		lm.createFn = func(tx *gorm.DB, entry *domain.LedgerEntry) error {
 			return errors.New("ledger error")
 		}
-		svc := service.NewWalletService(wm, lm)
+		svc := service.NewWalletService(wm, lm, nil)
 		_, err := svc.Pay(w.ID, domain.PayRequest{
 			Amount: "50.00", IdempotencyKey: "key",
 		})
@@ -2009,7 +2009,7 @@ func TestWalletService_Pay_Errors(t *testing.T) {
 		wm.updateBalanceFn = func(tx *gorm.DB, id uuid.UUID, balance string) error {
 			return errors.New("balance error")
 		}
-		svc := service.NewWalletService(wm, lm)
+		svc := service.NewWalletService(wm, lm, nil)
 		_, err := svc.Pay(w.ID, domain.PayRequest{
 			Amount: "50.00", IdempotencyKey: "key",
 		})
@@ -2030,7 +2030,7 @@ func TestWalletService_Transfer_Errors(t *testing.T) {
 		from := testWallet()
 		to := testWalletTo()
 		wm, lm := defaultMocks(db, from)
-		svc := service.NewWalletService(wm, lm)
+		svc := service.NewWalletService(wm, lm, nil)
 		_, err := svc.Transfer(domain.TransferRequest{
 			FromWalletID:   from.ID.String(),
 			ToWalletID:     to.ID.String(),
@@ -2044,7 +2044,7 @@ func TestWalletService_Transfer_Errors(t *testing.T) {
 		db := setupDB()
 		to := testWalletTo()
 		wm, lm := defaultMocks(db, testWallet())
-		svc := service.NewWalletService(wm, lm)
+		svc := service.NewWalletService(wm, lm, nil)
 		_, err := svc.Transfer(domain.TransferRequest{
 			FromWalletID:   "not-a-uuid",
 			ToWalletID:     to.ID.String(),
@@ -2058,7 +2058,7 @@ func TestWalletService_Transfer_Errors(t *testing.T) {
 		db := setupDB()
 		from := testWallet()
 		wm, lm := defaultMocks(db, from)
-		svc := service.NewWalletService(wm, lm)
+		svc := service.NewWalletService(wm, lm, nil)
 		_, err := svc.Transfer(domain.TransferRequest{
 			FromWalletID:   from.ID.String(),
 			ToWalletID:     "not-a-uuid",
@@ -2076,7 +2076,7 @@ func TestWalletService_Transfer_Errors(t *testing.T) {
 		lm.findByIdempotencyKeyFn = func(key string) (*domain.LedgerEntry, error) {
 			return nil, errors.New("db error")
 		}
-		svc := service.NewWalletService(wm, lm)
+		svc := service.NewWalletService(wm, lm, nil)
 		_, err := svc.Transfer(domain.TransferRequest{
 			FromWalletID:   from.ID.String(),
 			ToWalletID:     to.ID.String(),
@@ -2099,7 +2099,7 @@ func TestWalletService_Transfer_Errors(t *testing.T) {
 				BalanceAfter: "70.00", ReferenceID: nil,
 			}, nil
 		}
-		svc := service.NewWalletService(wm, lm)
+		svc := service.NewWalletService(wm, lm, nil)
 		_, err := svc.Transfer(domain.TransferRequest{
 			FromWalletID:   from.ID.String(),
 			ToWalletID:     to.ID.String(),
@@ -2121,7 +2121,7 @@ func TestWalletService_Transfer_Errors(t *testing.T) {
 			}
 			return to, nil
 		}
-		svc := service.NewWalletService(wm, lm)
+		svc := service.NewWalletService(wm, lm, nil)
 		_, err := svc.Transfer(domain.TransferRequest{
 			FromWalletID:   from.ID.String(),
 			ToWalletID:     to.ID.String(),
@@ -2143,7 +2143,7 @@ func TestWalletService_Transfer_Errors(t *testing.T) {
 			}
 			return to, nil
 		}
-		svc := service.NewWalletService(wm, lm)
+		svc := service.NewWalletService(wm, lm, nil)
 		_, err := svc.Transfer(domain.TransferRequest{
 			FromWalletID:   from.ID.String(),
 			ToWalletID:     to.ID.String(),
@@ -2168,7 +2168,7 @@ func TestWalletService_Transfer_Errors(t *testing.T) {
 			}
 			return nil, errors.New("db error")
 		}
-		svc := service.NewWalletService(wm, lm)
+		svc := service.NewWalletService(wm, lm, nil)
 		_, err := svc.Transfer(domain.TransferRequest{
 			FromWalletID:   from.ID.String(),
 			ToWalletID:     to.ID.String(),
@@ -2193,7 +2193,7 @@ func TestWalletService_Transfer_Errors(t *testing.T) {
 		lm.createFn = func(tx *gorm.DB, entry *domain.LedgerEntry) error {
 			return errors.New("ledger error")
 		}
-		svc := service.NewWalletService(wm, lm)
+		svc := service.NewWalletService(wm, lm, nil)
 		_, err := svc.Transfer(domain.TransferRequest{
 			FromWalletID:   from.ID.String(),
 			ToWalletID:     to.ID.String(),
@@ -2223,7 +2223,7 @@ func TestWalletService_Transfer_Errors(t *testing.T) {
 			}
 			return errors.New("in ledger error")
 		}
-		svc := service.NewWalletService(wm, lm)
+		svc := service.NewWalletService(wm, lm, nil)
 		_, err := svc.Transfer(domain.TransferRequest{
 			FromWalletID:   from.ID.String(),
 			ToWalletID:     to.ID.String(),
@@ -2248,7 +2248,7 @@ func TestWalletService_Transfer_Errors(t *testing.T) {
 		wm.updateBalanceFn = func(tx *gorm.DB, id uuid.UUID, balance string) error {
 			return errors.New("balance error")
 		}
-		svc := service.NewWalletService(wm, lm)
+		svc := service.NewWalletService(wm, lm, nil)
 		_, err := svc.Transfer(domain.TransferRequest{
 			FromWalletID:   from.ID.String(),
 			ToWalletID:     to.ID.String(),
@@ -2278,7 +2278,7 @@ func TestWalletService_Transfer_Errors(t *testing.T) {
 			}
 			return errors.New("balance error")
 		}
-		svc := service.NewWalletService(wm, lm)
+		svc := service.NewWalletService(wm, lm, nil)
 		_, err := svc.Transfer(domain.TransferRequest{
 			FromWalletID:   from.ID.String(),
 			ToWalletID:     to.ID.String(),
@@ -2303,7 +2303,7 @@ func TestWalletService_Suspend_Errors(t *testing.T) {
 		wm.findByIDFn = func(id uuid.UUID) (*domain.Wallet, error) {
 			return nil, errors.New("db error")
 		}
-		svc := service.NewWalletService(wm, lm)
+		svc := service.NewWalletService(wm, lm, nil)
 		_, err := svc.Suspend(uuid.New())
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "db error")
@@ -2317,7 +2317,7 @@ func TestWalletService_Suspend_Errors(t *testing.T) {
 		wm.updateStatusFn = func(tx *gorm.DB, id uuid.UUID, status domain.WalletStatus) error {
 			return errors.New("status error")
 		}
-		svc := service.NewWalletService(wm, lm)
+		svc := service.NewWalletService(wm, lm, nil)
 		_, err := svc.Suspend(w.ID)
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "status error")

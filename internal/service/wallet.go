@@ -60,11 +60,23 @@ type LedgerRepository interface {
 type WalletService struct {
 	walletRepo WalletRepository
 	ledgerRepo LedgerRepository
+	eventBus   EventPublisher
 }
 
-func NewWalletService(walletRepo WalletRepository, ledgerRepo LedgerRepository) *WalletService {
-	return &WalletService{walletRepo: walletRepo, ledgerRepo: ledgerRepo}
+type EventPublisher interface {
+	Publish(topic string, evt any)
 }
+
+func NewWalletService(walletRepo WalletRepository, ledgerRepo LedgerRepository, eventBus EventPublisher) *WalletService {
+	if eventBus == nil {
+		eventBus = &noopPublisher{}
+	}
+	return &WalletService{walletRepo: walletRepo, ledgerRepo: ledgerRepo, eventBus: eventBus}
+}
+
+type noopPublisher struct{}
+
+func (n *noopPublisher) Publish(topic string, evt any) {}
 
 func (s *WalletService) Create(req domain.CreateWalletRequest) (*domain.Wallet, error) {
 	if len(req.Currency) != 3 {
@@ -175,6 +187,8 @@ func (s *WalletService) TopUp(walletID uuid.UUID, req domain.TopUpRequest) (*dom
 		return nil, err
 	}
 
+	s.eventBus.Publish("ledger", *entry)
+
 	return &domain.TopUpResponse{
 		WalletID: w.ID.String(),
 		Balance:  newBalance.StringFixed(2),
@@ -257,6 +271,8 @@ func (s *WalletService) Pay(walletID uuid.UUID, req domain.PayRequest) (*domain.
 	if err := tx.Commit().Error; err != nil {
 		return nil, err
 	}
+
+	s.eventBus.Publish("ledger", *entry)
 
 	return &domain.PayResponse{
 		WalletID: w.ID.String(),
@@ -418,6 +434,9 @@ func (s *WalletService) Transfer(req domain.TransferRequest) (*domain.TransferRe
 	if err := tx.Commit().Error; err != nil {
 		return nil, err
 	}
+
+	s.eventBus.Publish("ledger", *outEntry)
+	s.eventBus.Publish("ledger", *inEntry)
 
 	return &domain.TransferResponse{
 		TransferID:  refID,
