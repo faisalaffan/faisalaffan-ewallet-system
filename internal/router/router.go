@@ -33,24 +33,35 @@ const swaggerHTML = `<!DOCTYPE html>
                 }
             }
         });
-        document.addEventListener("DOMContentLoaded", function() {
-            setTimeout(function() {
-                const btn = document.createElement("div");
-                btn.innerHTML = '<div class="auth-wrapper" style="margin:10px 0"><input id="api-key-input" type="password" placeholder="API Key" style="padding:6px;width:240px;margin-right:8px;border:1px solid #ccc;border-radius:4px"><button id="api-key-btn" style="padding:6px 12px;cursor:pointer">Set Token</button></div>';
-                const target = document.querySelector(".information-container") || document.querySelector(".topbar");
-                if (target) target.insertAdjacentHTML("afterend", btn.outerHTML);
-                document.getElementById("api-key-btn").addEventListener("click", function() {
-                    const key = document.getElementById("api-key-input").value;
-                    if (key) {
-                        localStorage.setItem("ewallet-api-key", key);
-                        ui.authActions.authorize({
-                            BearerAuth: { name: "BearerAuth", schema: { type: "apiKey", in: "header", name: "Authorization" }, value: key }
-                        });
-                        alert("Token set! Klik Authorize lalu coba endpoint.");
-                    }
-                });
-            }, 500);
-        });
+        function injectTokenUI() {
+            const target = document.querySelector(".information-container") || document.querySelector(".topbar");
+            if (!target) return setTimeout(injectTokenUI, 200);
+            const wrapper = document.createElement("div");
+            wrapper.style.cssText = "margin:10px 0";
+            const input = document.createElement("input");
+            input.id = "api-key-input";
+            input.type = "password";
+            input.placeholder = "API Key";
+            input.style.cssText = "padding:6px;width:240px;margin-right:8px;border:1px solid #ccc;border-radius:4px";
+            const button = document.createElement("button");
+            button.id = "api-key-btn";
+            button.textContent = "Set Token";
+            button.style.cssText = "padding:6px 12px;cursor:pointer";
+            button.onclick = function() {
+                const key = input.value;
+                if (key) {
+                    localStorage.setItem("ewallet-api-key", key);
+                    ui.authActions.authorize({
+                        BearerAuth: { name: "BearerAuth", schema: { type: "apiKey", in: "header", name: "Authorization" }, value: key }
+                    });
+                    ui.specActions.download();
+                }
+            };
+            wrapper.appendChild(input);
+            wrapper.appendChild(button);
+            target.parentNode.insertBefore(wrapper, target.nextSibling);
+        }
+        setTimeout(injectTokenUI, 500);
     </script>
 </body>
 </html>`
