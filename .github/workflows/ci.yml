@@ -29,6 +29,14 @@ jobs:
       - name: coverage
         run: go tool cover -func=coverage.out
 
+      - name: upload to codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: coverage.out
+          flags: unittests
+          fail_ci_if_error: false
+
   build:
     needs: test
     runs-on: ubuntu-latest

@@ -1,5 +1,8 @@
 # Multi-Currency E-Wallet Backend System
 
+[![CI](https://github.com/faisalaffan/faisalaffan-ewallet-system/actions/workflows/ci.yml/badge.svg)](https://github.com/faisalaffan/faisalaffan-ewallet-system/actions)
+[![codecov](https://codecov.io/gh/faisalaffan/faisalaffan-ewallet-system/branch/dev/graph/badge.svg?token=52363029-d10a-4e07-8701-27a8f942d252)](https://codecov.io/gh/faisalaffan/faisalaffan-ewallet-system)
+
 Ledger-based e-wallet backend dengan dukungan multi-currency, operasi top-up/payment/transfer, dan audit trail append-only.
 
 ## Quick Start
