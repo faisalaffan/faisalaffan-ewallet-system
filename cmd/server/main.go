@@ -7,6 +7,7 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/faisalaffan/ewallet-system/docs"
 	"github.com/faisalaffan/ewallet-system/internal/config"
 	"github.com/faisalaffan/ewallet-system/internal/handler"
 	"github.com/faisalaffan/ewallet-system/internal/repository"
@@ -29,6 +30,8 @@ func run() error {
 	if err != nil {
 		return err
 	}
+
+	docs.SwaggerInfo.BasePath = "/api"
 
 	otelServiceName := os.Getenv("OTEL_SERVICE_NAME")
 	if otelServiceName == "" {

@@ -17,6 +17,7 @@ import (
 // @securityDefinitions.apikey ApiKeyAuth
 // @in header
 // @name Authorization
+// @host ewallet-api.faisalaffan.com
 // @BasePath /api
 
 type WalletHandler struct {
