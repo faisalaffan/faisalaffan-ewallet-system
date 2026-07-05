@@ -30,7 +30,7 @@ spec:
             - name: OTEL_DEPLOYMENT_ENVIRONMENT
               value: production
             - name: OTEL_EXPORTER_OTLP_ENDPOINT
-              value: otel-collector.observability:4318
+              value: alloy-otel.infra:4318
             - name: OTEL_EXPORTER_OTLP_INSECURE
               value: "true"
             - name: OTEL_TRACES_SAMPLER

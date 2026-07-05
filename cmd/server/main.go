@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	"log"
+	"log/slog"
 	"os"
 	"os/signal"
 	"sync"
@@ -23,7 +23,8 @@ import (
 
 func main() {
 	if err := run(); err != nil {
-		log.Fatalf("failed to start server: %v", err)
+		slog.Error("failed to start server", "error", err)
+		os.Exit(1)
 	}
 }
 
@@ -35,28 +36,30 @@ func run() error {
 		return err
 	}
 
-	docs.SwaggerInfo.BasePath = "/api"
-	docs.SwaggerInfo.Host = os.Getenv("SWAGGER_HOST")
-	docs.SwaggerInfo.Schemes = []string{"https", "http"}
-
 	otelServiceName := os.Getenv("OTEL_SERVICE_NAME")
 	if otelServiceName == "" {
 		otelServiceName = "ewallet-api"
 	}
 
+	telemetry.LoggerSetup(otelServiceName)
+
+	docs.SwaggerInfo.BasePath = "/api"
+	docs.SwaggerInfo.Host = os.Getenv("SWAGGER_HOST")
+	docs.SwaggerInfo.Schemes = []string{"https", "http"}
+
 	shutdown, err := telemetry.TracerSetup(ctx, otelServiceName)
 	if err != nil {
-		log.Printf("WARN: failed to setup OTel tracing: %v", err)
+		slog.Warn("failed to setup OTel tracing", "error", err)
 	} else {
 		defer func() {
 			if err := shutdown(ctx); err != nil {
-				log.Printf("WARN: failed to shutdown OTel: %v", err)
+				slog.Warn("failed to shutdown OTel", "error", err)
 			}
 		}()
 	}
 
 	if err := telemetry.MeterSetup(); err != nil {
-		log.Printf("WARN: failed to setup OTel metrics: %v", err)
+		slog.Warn("failed to setup OTel metrics", "error", err)
 	}
 
 	db, err := database.NewPostgres(cfg.DSN())
@@ -65,7 +68,7 @@ func run() error {
 	}
 
 	if err := database.AddOtelPlugin(db); err != nil {
-		log.Printf("WARN: failed to add OTel plugin to GORM: %v", err)
+		slog.Warn("failed to add OTel plugin to GORM", "error", err)
 	}
 
 	if err := database.RunMigrations(db); err != nil {
@@ -74,7 +77,7 @@ func run() error {
 
 	// EventBus: channel-based pub/sub for ledger events
 	eventBus := worker.NewEventBus()
-	log.Println("[event-bus] initialized")
+	slog.Info("event-bus initialized")
 
 	// Subscriber goroutine: log ledger events asynchronously
 	eventBus.Add(1)
@@ -86,10 +89,13 @@ func run() error {
 			if !ok {
 				continue
 			}
-			log.Printf("[event-bus] ledger: wallet=%s type=%s amount=%s",
-				evt.WalletID, evt.EntryType, evt.Amount)
+			slog.Info("ledger event",
+				"wallet_id", evt.WalletID.String(),
+				"entry_type", evt.EntryType,
+				"amount", evt.Amount,
+			)
 		}
-		log.Println("[event-bus] subscriber stopped")
+		slog.Info("event-bus subscriber stopped")
 	}()
 
 	walletRepo := repository.NewWalletRepository(db)
@@ -115,20 +121,18 @@ func run() error {
 	go func() {
 		defer shutdownWg.Done()
 		<-sigCtx.Done()
-		log.Println("[shutdown] signal received, draining...")
+		slog.Info("shutdown signal received, draining...")
 
-		// Stop accepting new work
 		if err := app.Shutdown(); err != nil {
-			log.Printf("[shutdown] fiber shutdown error: %v", err)
+			slog.Warn("fiber shutdown error", "error", err)
 		}
 
-		// Wait for background workers
 		reconcileWorker.Shutdown()
 		eventBus.Close()
 
-		log.Println("[shutdown] complete")
+		slog.Info("shutdown complete")
 	}()
 
-	log.Printf("[server] listening on :%s", cfg.AppPort)
+	slog.Info("server listening", "port", cfg.AppPort)
 	return app.Listen(":" + cfg.AppPort)
 }

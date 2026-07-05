@@ -1,7 +1,7 @@
 package worker
 
 import (
-	"log"
+	"log/slog"
 	"sync"
 
 	"github.com/faisalaffan/ewallet-system/internal/domain"
@@ -43,7 +43,7 @@ func (b *EventBus) Publish(topic string, evt any) {
 		select {
 		case ch <- evt:
 		default:
-			log.Printf("WARN: event bus channel full, dropping event for topic %s", topic)
+			slog.Warn("event-bus channel full, dropping event", "topic", topic)
 		}
 	}
 }

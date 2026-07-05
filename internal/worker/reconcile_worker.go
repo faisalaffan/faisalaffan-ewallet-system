@@ -3,7 +3,7 @@ package worker
 import (
 	"context"
 	"fmt"
-	"log"
+	"log/slog"
 	"sync"
 	"time"
 
@@ -30,12 +30,12 @@ func (w *ReconcileWorker) Start(ctx context.Context) {
 		ticker := time.NewTicker(w.interval)
 		defer ticker.Stop()
 
-		log.Printf("[reconcile-worker] started, interval=%s", w.interval)
+		slog.Info("reconcile-worker started", "interval", w.interval.String())
 
 		for {
 			select {
 			case <-ctx.Done():
-				log.Println("[reconcile-worker] stopped")
+				slog.Info("reconcile-worker stopped")
 				return
 			case <-ticker.C:
 				w.run(ctx)
@@ -64,7 +64,7 @@ func (w *ReconcileWorker) run(ctx context.Context) {
 		Table("wallets").
 		Select("id, balance").
 		Find(&wallets).Error; err != nil {
-		log.Printf("[reconcile-worker] failed to fetch wallets: %v", err)
+		slog.Error("reconcile-worker failed to fetch wallets", "error", err)
 		return
 	}
 
@@ -78,7 +78,7 @@ func (w *ReconcileWorker) run(ctx context.Context) {
 		Select("wallet_id, SUM(CASE WHEN entry_type IN ('TOPUP','TRANSFER_IN') THEN amount ELSE -amount END) as total").
 		Group("wallet_id").
 		Find(&totals).Error; err != nil {
-		log.Printf("[reconcile-worker] failed to fetch ledger totals: %v", err)
+		slog.Error("reconcile-worker failed to fetch ledger totals", "error", err)
 		return
 	}
 
@@ -124,10 +124,10 @@ func (w *ReconcileWorker) run(ctx context.Context) {
 	var mismatches int
 	for msg := range resultCh {
 		mismatches++
-		log.Printf("[reconcile-worker] %s", msg)
+		slog.Warn("reconcile-worker mismatch", "detail", msg)
 	}
 
 	if mismatches > 0 {
-		log.Printf("[reconcile-worker] %d/%d wallets mismatched", mismatches, len(wallets))
+		slog.Warn("reconcile-worker summary", "mismatches", mismatches, "total", len(wallets))
 	}
 }
