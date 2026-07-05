@@ -1,13 +1,11 @@
-CREATE EXTENSION IF NOT EXISTS "pgcrypto";
-
 CREATE TABLE IF NOT EXISTS wallets (
     id         uuid        NOT NULL DEFAULT gen_random_uuid(),
-    owner_id   varchar(255) NOT NULL,
+    owner_id   text        NOT NULL,
     currency   char(3)     NOT NULL,
-    balance    numeric(20,2) NOT NULL DEFAULT 0.00,
+    balance    numeric(20,2) NOT NULL DEFAULT 0,
     status     varchar(20) NOT NULL DEFAULT 'ACTIVE',
-    created_at timestamptz NOT NULL DEFAULT now(),
-    updated_at timestamptz NOT NULL DEFAULT now(),
+    created_at timestamptz,
+    updated_at timestamptz,
     PRIMARY KEY (id),
     CONSTRAINT uq_wallets_owner_currency UNIQUE (owner_id, currency)
 );
