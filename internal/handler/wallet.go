@@ -14,6 +14,9 @@ import (
 // @title Multi-Currency E-Wallet API
 // @version 1.0
 // @description Ledger-based e-wallet backend with multi-currency support.
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
 // @BasePath /api
 
 type WalletHandler struct {

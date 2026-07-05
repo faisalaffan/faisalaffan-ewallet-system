@@ -1,4 +1,3 @@
-basePath: /api
 definitions:
   github_com_faisalaffan_ewallet-system_internal_domain.CreateWalletRequest:
     properties:
@@ -424,4 +423,9 @@ paths:
       summary: Transfer between wallets
       tags:
       - wallets
+securityDefinitions:
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
 swagger: "2.0"
