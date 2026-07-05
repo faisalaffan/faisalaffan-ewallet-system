@@ -47,7 +47,7 @@ func Setup(h *handler.WalletHandler) *fiber.App {
 	app.Get("/swagger/doc.json", func(c fiber.Ctx) error {
 		c.Set("Content-Type", "application/json")
 		raw := docs.SwaggerInfo.ReadDoc()
-		raw = strings.Replace(raw, `,"paths":{`, securityDef+`,"paths":{`, 1)
+		raw = strings.Replace(raw, `"paths": {`, securityDef+`,"paths": {`, 1)
 		return c.SendString(raw)
 	})
 
