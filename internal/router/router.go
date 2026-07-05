@@ -31,7 +31,7 @@ const swaggerHTML = `<!DOCTYPE html>
 </body>
 </html>`
 
-const securityDef = `,"securityDefinitions":{"ApiKeyAuth":{"type":"apiKey","name":"Authorization","in":"header","description":"Enter: Bearer <your-api-key>"}},"security":[{"ApiKeyAuth":[]}]`
+const securityDef = `"securityDefinitions":{"ApiKeyAuth":{"type":"apiKey","name":"Authorization","in":"header","description":"Enter: Bearer <your-api-key>"}},"security":[{"ApiKeyAuth":[]}],`
 
 func Setup(h *handler.WalletHandler) *fiber.App {
 	app := fiber.New()
@@ -47,7 +47,10 @@ func Setup(h *handler.WalletHandler) *fiber.App {
 	app.Get("/swagger/doc.json", func(c fiber.Ctx) error {
 		c.Set("Content-Type", "application/json")
 		raw := docs.SwaggerInfo.ReadDoc()
-		raw = strings.Replace(raw, `"paths": {`, securityDef+`,"paths": {`, 1)
+		// Inject securityDefinitions before paths, matching template indent
+		raw = strings.Replace(raw,
+			"\n    \"paths\": {",
+			securityDef+"\n    \"paths\": {", 1)
 		return c.SendString(raw)
 	})
 
