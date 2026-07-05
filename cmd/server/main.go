@@ -32,6 +32,8 @@ func run() error {
 	}
 
 	docs.SwaggerInfo.BasePath = "/api"
+	docs.SwaggerInfo.Host = os.Getenv("SWAGGER_HOST")
+	docs.SwaggerInfo.Schemes = []string{"https", "http"}
 
 	otelServiceName := os.Getenv("OTEL_SERVICE_NAME")
 	if otelServiceName == "" {
