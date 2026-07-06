@@ -47,6 +47,9 @@ func TestEdge_Decimal_RejectTooSmall(t *testing.T) {
 		"idempotency_key": testOwner + "-edge-decimal-3",
 	})
 	assert.Equal(t, 400, resp.StatusCode)
+	body, _ := getBody(t, resp)
+	errObj := body["error"].(map[string]any)
+	assert.Equal(t, "AMOUNT_TOO_SMALL", errObj["code"])
 }
 
 // ---------------------------------------------------------------------------
@@ -88,6 +91,9 @@ func TestEdge_ZeroAmount(t *testing.T) {
 		"idempotency_key": testOwner + "-edge-zero-1",
 	})
 	assert.Equal(t, 400, resp.StatusCode)
+	body, _ := getBody(t, resp)
+	errObj := body["error"].(map[string]any)
+	assert.Equal(t, "AMOUNT_TOO_SMALL", errObj["code"])
 
 	// pay 0.00
 	resp = doRequest(t, http.MethodPost, "/wallets/"+walletID+"/pay", map[string]string{
@@ -95,6 +101,9 @@ func TestEdge_ZeroAmount(t *testing.T) {
 		"idempotency_key": testOwner + "-edge-zero-2",
 	})
 	assert.Equal(t, 400, resp.StatusCode)
+	body, _ = getBody(t, resp)
+	errObj = body["error"].(map[string]any)
+	assert.Equal(t, "AMOUNT_TOO_SMALL", errObj["code"])
 }
 
 func TestEdge_NegativeAmount(t *testing.T) {
@@ -106,6 +115,9 @@ func TestEdge_NegativeAmount(t *testing.T) {
 		"idempotency_key": testOwner + "-edge-neg-1",
 	})
 	assert.Equal(t, 400, resp.StatusCode)
+	body, _ := getBody(t, resp)
+	errObj := body["error"].(map[string]any)
+	assert.Equal(t, "AMOUNT_TOO_SMALL", errObj["code"])
 
 	// pay -50.00
 	resp = doRequest(t, http.MethodPost, "/wallets/"+walletID+"/pay", map[string]string{
@@ -113,6 +125,9 @@ func TestEdge_NegativeAmount(t *testing.T) {
 		"idempotency_key": testOwner + "-edge-neg-2",
 	})
 	assert.Equal(t, 400, resp.StatusCode)
+	body, _ = getBody(t, resp)
+	errObj = body["error"].(map[string]any)
+	assert.Equal(t, "AMOUNT_TOO_SMALL", errObj["code"])
 }
 
 // ---------------------------------------------------------------------------
@@ -147,6 +162,9 @@ func TestEdge_MultipleCurrenciesPerUser(t *testing.T) {
 		"currency": "USD",
 	})
 	assert.Equal(t, 409, resp.StatusCode)
+	body, _ := getBody(t, resp)
+	errObj := body["error"].(map[string]any)
+	assert.Equal(t, "WALLET_EXISTS", errObj["code"])
 }
 
 // ---------------------------------------------------------------------------
@@ -169,6 +187,9 @@ func TestEdge_Transfer_Atomicity(t *testing.T) {
 		"idempotency_key": testOwner + "-edge-atomic-1",
 	})
 	assert.Equal(t, 404, resp.StatusCode)
+	body, _ := getBody(t, resp)
+	errObj := body["error"].(map[string]any)
+	assert.Equal(t, "NOT_FOUND", errObj["code"])
 
 	// verify from balance untouched
 	resp = doRequest(t, http.MethodGet, "/wallets/"+from, nil)
@@ -223,6 +244,9 @@ func TestEdge_Suspended_CannotTopUp(t *testing.T) {
 		"idempotency_key": testOwner + "-edge-sus-topup-1",
 	})
 	assert.Equal(t, 409, resp.StatusCode)
+	body, _ := getBody(t, resp)
+	errObj := body["error"].(map[string]any)
+	assert.Equal(t, "WALLET_SUSPENDED", errObj["code"])
 }
 
 func TestEdge_Suspended_CannotPay(t *testing.T) {
@@ -238,6 +262,9 @@ func TestEdge_Suspended_CannotPay(t *testing.T) {
 		"idempotency_key": testOwner + "-edge-sus-pay-1",
 	})
 	assert.Equal(t, 409, resp.StatusCode)
+	body, _ := getBody(t, resp)
+	errObj := body["error"].(map[string]any)
+	assert.Equal(t, "WALLET_SUSPENDED", errObj["code"])
 }
 
 func TestEdge_Suspended_CannotTransferOut(t *testing.T) {
@@ -256,6 +283,9 @@ func TestEdge_Suspended_CannotTransferOut(t *testing.T) {
 		"idempotency_key": testOwner + "-edge-sus-tr-1",
 	})
 	assert.Equal(t, 409, resp.StatusCode)
+	body, _ := getBody(t, resp)
+	errObj := body["error"].(map[string]any)
+	assert.Equal(t, "WALLET_SUSPENDED", errObj["code"])
 }
 
 // ---------------------------------------------------------------------------

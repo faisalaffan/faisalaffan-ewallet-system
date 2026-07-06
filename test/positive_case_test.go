@@ -321,6 +321,9 @@ func TestPositive_FullFlow(t *testing.T) {
 		"idempotency_key": testOwner + "-flow-fail",
 	})
 	assert.Equal(t, 400, resp.StatusCode)
+	body, _ := getBody(t, resp)
+	errObj := body["error"].(map[string]any)
+	assert.Equal(t, "CURRENCY_MISMATCH", errObj["code"])
 
 	// verify final state
 	d := u1.Balance("USD")

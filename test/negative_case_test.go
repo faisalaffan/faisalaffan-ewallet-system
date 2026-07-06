@@ -16,6 +16,9 @@ func TestNegative_Create_MissingFields(t *testing.T) {
 		"currency": "",
 	})
 	assert.Equal(t, 422, resp.StatusCode)
+	body, _ := getBody(t, resp)
+	errObj := body["error"].(map[string]any)
+	assert.Equal(t, "VALIDATION_ERROR", errObj["code"])
 }
 
 func TestNegative_Create_InvalidJSON(t *testing.T) {
@@ -26,6 +29,9 @@ func TestNegative_Create_InvalidJSON(t *testing.T) {
 	require.NoError(t, err)
 	defer resp.Body.Close()
 	assert.Equal(t, 400, resp.StatusCode)
+	body, _ := getBody(t, resp)
+	errObj := body["error"].(map[string]any)
+	assert.Equal(t, "INVALID_JSON", errObj["code"])
 }
 
 func TestNegative_Create_Duplicate(t *testing.T) {
@@ -45,11 +51,17 @@ func TestNegative_Create_Duplicate(t *testing.T) {
 func TestNegative_Get_NotFound(t *testing.T) {
 	resp := doRequest(t, http.MethodGet, "/wallets/"+uuid.New().String(), nil)
 	assert.Equal(t, 404, resp.StatusCode)
+	body, _ := getBody(t, resp)
+	errObj := body["error"].(map[string]any)
+	assert.Equal(t, "NOT_FOUND", errObj["code"])
 }
 
 func TestNegative_Get_InvalidUUID(t *testing.T) {
 	resp := doRequest(t, http.MethodGet, "/wallets/not-a-uuid", nil)
 	assert.Equal(t, 400, resp.StatusCode)
+	body, _ := getBody(t, resp)
+	errObj := body["error"].(map[string]any)
+	assert.Equal(t, "INVALID_ID", errObj["code"])
 }
 
 func TestNegative_TopUp_NoIdempotencyKey(t *testing.T) {
@@ -57,6 +69,9 @@ func TestNegative_TopUp_NoIdempotencyKey(t *testing.T) {
 		"amount": "100.00",
 	})
 	assert.Equal(t, 422, resp.StatusCode)
+	body, _ := getBody(t, resp)
+	errObj := body["error"].(map[string]any)
+	assert.Equal(t, "VALIDATION_ERROR", errObj["code"])
 }
 
 func TestNegative_Pay_NoIdempotencyKey(t *testing.T) {
@@ -64,6 +79,9 @@ func TestNegative_Pay_NoIdempotencyKey(t *testing.T) {
 		"amount": "100.00",
 	})
 	assert.Equal(t, 422, resp.StatusCode)
+	body, _ := getBody(t, resp)
+	errObj := body["error"].(map[string]any)
+	assert.Equal(t, "VALIDATION_ERROR", errObj["code"])
 }
 
 func TestNegative_Pay_InsufficientBalance(t *testing.T) {
@@ -90,6 +108,9 @@ func TestNegative_Transfer_NoIdempotencyKey(t *testing.T) {
 		"amount":         "100.00",
 	})
 	assert.Equal(t, 422, resp.StatusCode)
+	body, _ := getBody(t, resp)
+	errObj := body["error"].(map[string]any)
+	assert.Equal(t, "VALIDATION_ERROR", errObj["code"])
 }
 
 func TestNegative_Transfer_CurrencyMismatch(t *testing.T) {
@@ -137,6 +158,9 @@ func TestNegative_Auth_NoHeader(t *testing.T) {
 	require.NoError(t, err)
 	defer resp.Body.Close()
 	assert.Equal(t, 401, resp.StatusCode)
+	body, _ := getBody(t, resp)
+	errObj := body["error"].(map[string]any)
+	assert.Equal(t, "UNAUTHORIZED", errObj["code"])
 }
 
 func TestNegative_Auth_InvalidKey(t *testing.T) {
@@ -146,4 +170,7 @@ func TestNegative_Auth_InvalidKey(t *testing.T) {
 	require.NoError(t, err)
 	defer resp.Body.Close()
 	assert.Equal(t, 401, resp.StatusCode)
+	body, _ := getBody(t, resp)
+	errObj := body["error"].(map[string]any)
+	assert.Equal(t, "UNAUTHORIZED", errObj["code"])
 }
