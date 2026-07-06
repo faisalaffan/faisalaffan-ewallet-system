@@ -23,24 +23,28 @@ build:
 
 ## test: run all tests
 test:
-	go test ./... -count=1
+	go test $$(go list ./... | grep -v '/test$$') -count=1
 
 ## test-race: run all tests with race detector
 test-race:
-	go test ./... -race -count=1
+	go test $$(go list ./... | grep -v '/test$$') -race -count=1
+
+## test-e2e: run E2E integration tests (requires running server)
+test-e2e:
+	go test ./test -v -count=1
 
 ## test-v: run tests verbose
 test-v:
-	go test ./... -v -count=1
+	go test $$(go list ./... | grep -v '/test$$') -v -count=1
 
 ## coverage: test coverage report (func)
 coverage:
-	go test ./... -coverprofile=coverage.out -count=1
+	go test $$(go list ./... | grep -v '/test$$') -coverprofile=coverage.out -count=1
 	go tool cover -func=coverage.out
 
 ## coverage-html: open coverage report in browser
 coverage-html:
-	go test ./... -coverprofile=coverage.out -count=1
+	go test $$(go list ./... | grep -v '/test$$') -coverprofile=coverage.out -count=1
 	go tool cover -html=coverage.out
 
 ## vet: run go vet
