@@ -121,6 +121,11 @@ k8s-apply:
 k8s-diff:
 	kubectl diff -k k8s/overlays/production
 
+## setup-all: docker-up + migration-apply (setup env, then make run)
+setup-all: docker-up
+	sleep 3
+	$(MAKE) migration-apply
+
 ## dev: docker-up + migration-apply + run (full local dev)
 dev: docker-up
 	sleep 3
