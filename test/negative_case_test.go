@@ -107,6 +107,9 @@ func TestNegative_Transfer_CurrencyMismatch(t *testing.T) {
 		"idempotency_key": testOwner + "-tr-mismatch-1",
 	})
 	assert.Equal(t, 400, resp.StatusCode)
+	body, _ := getBody(t, resp)
+	errObj := body["error"].(map[string]any)
+	assert.Equal(t, "CURRENCY_MISMATCH", errObj["code"])
 }
 
 func TestNegative_Transfer_SameWallet(t *testing.T) {
@@ -123,6 +126,9 @@ func TestNegative_Transfer_SameWallet(t *testing.T) {
 		"idempotency_key": testOwner + "-tr-same-1",
 	})
 	assert.Equal(t, 400, resp.StatusCode)
+	body, _ := getBody(t, resp)
+	errObj := body["error"].(map[string]any)
+	assert.Equal(t, "SAME_WALLET", errObj["code"])
 }
 
 func TestNegative_Auth_NoHeader(t *testing.T) {
